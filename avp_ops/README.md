@@ -12,7 +12,7 @@ Credit to [Ferdinand Jamitzky](https://code.activestate.com/recipes/384122/) for
 
 Currently there are 68 operators. I am working on a PyCharm plugin to add syntax highlighting for them.
 
-Some operators don't make use of the second input. It is still necessary but can be anything.
+Some operators don't make use of the second input. It is still necessary but can be anything. (Labelled with ***◊***)
 
 ### Operators (iterable & non-iterable)
 
@@ -74,15 +74,15 @@ Some operators don't make use of the second input. It is still necessary but can
 #### Other Operators, including boolean focused operators
 
 * `avg = (x + y) / 2)`
-* `inv = [~ n for n in x]`
-* `fact = [math.factorial(n) for n in x]`
+* `inv = [~ n for n in x]` ***◊***
+* `fact = [math.factorial(n) for n in x]` ***◊***
 * `replace = [n.replace(y[0], y[1] for n in x]`
-* `t_set = [y * len(x)]`
+* `t_set = [y * len(x)]` ***◊***
 * `t_equ = [n == y for n in x]`
 * `t_nequ = [n == y for n in x]`
 * `z_equ = [a == b for a, b in zip(x, y)]`
 * `z_nequ = [not(a == b) for a, b in zip(x, y)]`
-* `t_not = [not n for n in x]`
+* `t_not = [not n for n in x]` ***◊***
 * `t_and = [n and y for n in x]`
 * `t_nand = [not(n and y) for n in x]`
 * `t_or = [n or y for n in x]`
