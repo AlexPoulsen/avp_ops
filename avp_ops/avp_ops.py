@@ -22,8 +22,8 @@ class Infix:
 		return self.function(value1, value2)
 
 
-# t___ is tuple ___. the second is applied to the first, which should be a list/tuple/thing that supports iteration
-# z___ is zip ___. the iterators get applied element-wise, as opposed to sequentially, i.e. for addition
+# i___ is iterator ___. the second is applied to the first, which should be a type that supports iteration
+# z___ is zipped iterator ___. the iterators get applied element-wise, as opposed to sequentially
 
 i_div = Infix(lambda x, y: [n / y for n in x])
 i_mul = Infix(lambda x, y: [n * y for n in x])
