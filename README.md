@@ -16,30 +16,30 @@ Some operators don't make use of the second input. It is still necessary but can
 
 ### Operators (iterable & non-iterable)
 
-* `t_div = [n / y for n in x]`
-* `t_mul = [n * y for n in x]`
-* `t_add = [n + y for n in x]`
-* `t_sub = [n - y for n in x]`
-* `t_rsub = [y - n for n in x]`
-* `t_pwr = [n ** y for n in x]`
-* `t_rpwr = [y ** n for n in x]`
-* `t_mod = [n % y for n in x]`
-* `t_rmod = [y % n for n in x]`
-* `t_fmod = [math.fmod(n, y) for n in x]`
-* `t_rfmod = [math.fmod(y, n) for n in x]`
-* `tb_and = [n & y for n in x]`
-* `tb_xor = [n ^ y for n in x]`
-* `tb_or = [n | y for n in x]`
-* `tb_ls = [n << y for n in x]`
-* `tb_rs = [n >> y for n in x]`
-* `t_sign = [math.copysign(n, y) for n in x]`
-* `t_gcd = [math.gcd(n, y) for n in x]`
-* `t_log = [math.log(n, y) for n in x]`
-* `t_rlog = [math.log(y, n) for n in x]`
-* `t_atan2 = [math.atan2(n, y) for n in x]`
-* `t_ratan2 = [math.atan2(y, n) for n in x]`
-* `t_hypot = [math.hypot(n, y) for n in x]`
-* `t_rhypot = [math.hypot(y, n) for n in x]`
+* `i_div = [n / y for n in x]`
+* `i_mul = [n * y for n in x]`
+* `i_add = [n + y for n in x]`
+* `i_sub = [n - y for n in x]`
+* `i_rsub = [y - n for n in x]`
+* `i_pwr = [n ** y for n in x]`
+* `i_rpwr = [y ** n for n in x]`
+* `i_mod = [n % y for n in x]`
+* `i_rmod = [y % n for n in x]`
+* `i_fmod = [math.fmod(n, y) for n in x]`
+* `i_rfmod = [math.fmod(y, n) for n in x]`
+* `ib_and = [n & y for n in x]`
+* `ib_xor = [n ^ y for n in x]`
+* `ib_or = [n | y for n in x]`
+* `ib_ls = [n << y for n in x]`
+* `ib_rs = [n >> y for n in x]`
+* `i_sign = [math.copysign(n, y) for n in x]`
+* `i_gcd = [math.gcd(n, y) for n in x]`
+* `i_log = [math.log(n, y) for n in x]`
+* `i_rlog = [math.log(y, n) for n in x]`
+* `i_atan2 = [math.atan2(n, y) for n in x]`
+* `i_ratan2 = [math.atan2(y, n) for n in x]`
+* `i_hypot = [math.hypot(n, y) for n in x]`
+* `i_rhypot = [math.hypot(y, n) for n in x]`
 
 ### Operators (iterable & iterable)
 
@@ -77,16 +77,16 @@ Some operators don't make use of the second input. It is still necessary but can
 * `inv = [~ n for n in x]` ***◊***
 * `fact = [math.factorial(n) for n in x]` ***◊***
 * `replace = [n.replace(y[0], y[1] for n in x]`
-* `t_set = [y * len(x)]` ***◊***
-* `t_equ = [n == y for n in x]`
-* `t_nequ = [n == y for n in x]`
+* `i_set = [y * len(x)]` ***◊***
+* `i_equ = [n == y for n in x]`
+* `i_nequ = [n == y for n in x]`
 * `z_equ = [a == b for a, b in zip(x, y)]`
 * `z_nequ = [not(a == b) for a, b in zip(x, y)]`
-* `t_not = [not n for n in x]` ***◊***
-* `t_and = [n and y for n in x]`
-* `t_nand = [not(n and y) for n in x]`
-* `t_or = [n or y for n in x]`
-* `t_nor = [not(n or y) for n in x]`
+* `i_not = [not n for n in x]` ***◊***
+* `i_and = [n and y for n in x]`
+* `i_nand = [not(n and y) for n in x]`
+* `i_or = [n or y for n in x]`
+* `i_nor = [not(n or y) for n in x]`
 * `z_and = [a and b for a, b in zip(x, y)]`
 * `z_nand = [not(a and b) for a, b in zip(x, y)]`
 * `z_or = [a or b for a, b in zip(x, y)]`
