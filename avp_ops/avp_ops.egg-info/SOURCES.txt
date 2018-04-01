@@ -1,0 +1,8 @@
+avp_ops.py
+setup.cfg
+setup.py
+avp_ops.egg-info/PKG-INFO
+avp_ops.egg-info/SOURCES.txt
+avp_ops.egg-info/dependency_links.txt
+avp_ops.egg-info/requires.txt
+avp_ops.egg-info/top_level.txt

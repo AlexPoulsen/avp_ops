@@ -71,6 +71,8 @@ setup(
     # above.
     author_email='alexpoulsen9@icloud.com',  # Optional
 
+	license="MIT",
+
     # Classifiers help users find your project by categorizing it.
     #
     # For a list of valid classifiers, see
