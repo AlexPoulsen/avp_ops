@@ -1,10 +1,12 @@
 import time
 import math
+import inspect
 
 
 class Infix:
-	def __init__(self, function):
+	def __init__(self, function, help_str=""):
 		self.function = function
+		self.help_str = help_str
 
 	def __ror__(self, other):
 		return Infix(lambda x, self=self, other=other: self.function(other, x))
@@ -21,81 +23,217 @@ class Infix:
 	def __call__(self, value1, value2):
 		return self.function(value1, value2)
 
+	def help(self):
+		if self.help_str == "":
+			data = inspect.getsource(self.function).replace("\t", "").replace("\n", "")
+		else:
+			data = inspect.getsource(self.function).replace("\t", "").replace("\n", "") + " <?> " + self.help_str
+		print(data)
+		return data
+
+
+def bit_not(n):
+	return (1 << n.bit_length()) - 1 - n
+
 
 # i___ is iterator ___. the second is applied to the first, which should be a type that supports iteration
 # z___ is zipped iterator ___. the iterators get applied element-wise, as opposed to sequentially
 
-i_div = Infix(lambda x, y: [n / y for n in x])
-i_mul = Infix(lambda x, y: [n * y for n in x])
-i_add = Infix(lambda x, y: [n + y for n in x])
-i_sub = Infix(lambda x, y: [n - y for n in x])
-i_rsub = Infix(lambda x, y: [y - n for n in x])
-i_pwr = Infix(lambda x, y: [n ** y for n in x])
-i_rpwr = Infix(lambda x, y: [y ** n for n in x])
-i_mod = Infix(lambda x, y: [n % y for n in x])
-i_rmod = Infix(lambda x, y: [y % n for n in x])
-i_fmod = Infix(lambda x, y: [math.fmod(n, y) for n in x])
-i_rfmod = Infix(lambda x, y: [math.fmod(y, n) for n in x])
-ib_and = Infix(lambda x, y: [n & y for n in x])
-ib_xor = Infix(lambda x, y: [n ^ y for n in x])
-ib_or = Infix(lambda x, y: [n | y for n in x])
-ib_ls = Infix(lambda x, y: [n << y for n in x])
-ib_rs = Infix(lambda x, y: [n >> y for n in x])
-i_sign = Infix(lambda x, y: [math.copysign(n, y) for n in x])
-i_gcd = Infix(lambda x, y: [math.gcd(n, y) for n in x])
-i_log = Infix(lambda x, y: [math.log(n, y) for n in x])
-i_rlog = Infix(lambda x, y: [math.log(y, n) for n in x])
-i_atan2 = Infix(lambda x, y: [math.atan2(n, y) for n in x])
-i_ratan2 = Infix(lambda x, y: [math.atan2(y, n) for n in x])
-i_hypot = Infix(lambda x, y: [math.hypot(n, y) for n in x])
-i_rhypot = Infix(lambda x, y: [math.hypot(y, n) for n in x])
 
-z_div = Infix(lambda x, y: [a / b for a, b in zip(x, y)])
-z_mul = Infix(lambda x, y: [a * b for a, b in zip(x, y)])
-z_add = Infix(lambda x, y: [a + b for a, b in zip(x, y)])
-z_sub = Infix(lambda x, y: [a - b for a, b in zip(x, y)])
-z_rsub = Infix(lambda x, y: [b - a for a, b in zip(x, y)])
-z_pwr = Infix(lambda x, y: [a ** b for a, b in zip(x, y)])
-z_rpwr = Infix(lambda x, y: [b ** a for a, b in zip(x, y)])
-z_mod = Infix(lambda x, y: [a % b for a, b in zip(x, y)])
-z_rmod = Infix(lambda x, y: [b % a for a, b in zip(x, y)])
-z_fmod = Infix(lambda x, y: [math.fmod(a, b) for a, b in zip(x, y)])
-z_rfmod = Infix(lambda x, y: [math.fmod(b, a) for a, b in zip(x, y)])
-zb_and = Infix(lambda x, y: [a & b for a, b in zip(x, y)])
-zb_xor = Infix(lambda x, y: [a ^ b for a, b in zip(x, y)])
-zb_or = Infix(lambda x, y: [a | b for a, b in zip(x, y)])
-zb_ls = Infix(lambda x, y: [a << b for a, b in zip(x, y)])
-zb_rs = Infix(lambda x, y: [a >> b for a, b in zip(x, y)])
-zbr_ls = Infix(lambda x, y: [b << a for a, b in zip(x, y)])
-zbr_rs = Infix(lambda x, y: [b >> a for a, b in zip(x, y)])
-z_addstr = Infix(lambda x, y: [float(str(a).split(".")[0] + str(b)) for a, b in zip(x, y)])
-z_sign = Infix(lambda x, y: [math.copysign(a, b) for a, b in zip(x, y)])
-z_gcd = Infix(lambda x, y: [math.gcd(a, b) for a, b in zip(x, y)])
-z_log = Infix(lambda x, y: [math.log(a, b) for a, b in zip(x, y)])
-z_rlog = Infix(lambda x, y: [math.log(b, a) for a, b in zip(x, y)])
-z_atan2 = Infix(lambda x, y: [math.atan2(a, b) for a, b in zip(x, y)])
-z_ratan2 = Infix(lambda x, y: [math.atan2(b, a) for a, b in zip(x, y)])
-z_hypot = Infix(lambda x, y: [math.hypot(a, b) for a, b in zip(x, y)])
-z_rhypot = Infix(lambda x, y: [math.hypot(b, a) for a, b in zip(x, y)])
+class I:
+	div = Infix(lambda x, y: [n / y for n in x])
+	mul = Infix(lambda x, y: [n * y for n in x])
+	add = Infix(lambda x, y: [n + y for n in x])
+	sub = Infix(lambda x, y: [n - y for n in x])
+	rsub = Infix(lambda x, y: [y - n for n in x])
+	pwr = Infix(lambda x, y: [n ** y for n in x])
+	rpwr = Infix(lambda x, y: [y ** n for n in x])
+	mod = Infix(lambda x, y: [n % y for n in x])
+	rmod = Infix(lambda x, y: [y % n for n in x])
+	fmod = Infix(lambda x, y: [math.fmod(n, y) for n in x])
+	rfmod = Infix(lambda x, y: [math.fmod(y, n) for n in x])
+	sign = Infix(lambda x, y: [math.copysign(n, y) for n in x])
+	gcd = Infix(lambda x, y: [math.gcd(n, y) for n in x])
+	log = Infix(lambda x, y: [math.log(n, y) for n in x])
+	rlog = Infix(lambda x, y: [math.log(y, n) for n in x])
+	atan2 = Infix(lambda x, y: [math.atan2(n, y) for n in x])
+	ratan2 = Infix(lambda x, y: [math.atan2(y, n) for n in x])
+	hypot = Infix(lambda x, y: [math.hypot(n, y) for n in x])
+	rhypot = Infix(lambda x, y: [math.hypot(y, n) for n in x])
+	avg = Infix(lambda x, y: [(n + y) / 2 for n in x])
+	fact = Infix(lambda x, y: [math.factorial(n) for n in x])  # second term is necessary but unused
+	repl = Infix(lambda x, y: [y[1] if n == y[0] else n for n in x])
+	replm = Infix(lambda x, y: [y[n] if n in y else n for n in x])
+	set = Infix(lambda x, y: [y * len(x)])
+
+	class Div:
+		addmul = Infix(lambda x, y: [(n + y) / (n * y) for n in x])
+		addsub = Infix(lambda x, y: [(n + y) / (n - y) for n in x])
+		addmod = Infix(lambda x, y: [(n + y) / (n % y) for n in x])
+		addpwr = Infix(lambda x, y: [(n + y) / (n ** y) for n in x])
+		adddiv = Infix(lambda x, y: [(n + y) / (n / y) for n in x])
+		submul = Infix(lambda x, y: [(n - y) / (n * y) for n in x])
+		subadd = Infix(lambda x, y: [(n - y) / (n + y) for n in x])
+		submod = Infix(lambda x, y: [(n - y) / (n % y) for n in x])
+		subpwr = Infix(lambda x, y: [(n - y) / (n ** y) for n in x])
+		subdiv = Infix(lambda x, y: [(n - y) / (n / y) for n in x])
+		muladd = Infix(lambda x, y: [(n * y) / (n + y) for n in x])
+		mulsub = Infix(lambda x, y: [(n * y) / (n - y) for n in x])
+		mulmod = Infix(lambda x, y: [(n * y) / (n % y) for n in x])
+		mulpwr = Infix(lambda x, y: [(n * y) / (n ** y) for n in x])
+		muldiv = Infix(lambda x, y: [(n * y) / (n / y) for n in x])
+		modmul = Infix(lambda x, y: [(n % y) / (n * y) for n in x])
+		modsub = Infix(lambda x, y: [(n % y) / (n - y) for n in x])
+		modadd = Infix(lambda x, y: [(n % y) / (n + y) for n in x])
+		modpwr = Infix(lambda x, y: [(n % y) / (n ** y) for n in x])
+		moddiv = Infix(lambda x, y: [(n % y) / (n / y) for n in x])
+		pwrmul = Infix(lambda x, y: [(n ** y) / (n * y) for n in x])
+		pwrsub = Infix(lambda x, y: [(n ** y) / (n - y) for n in x])
+		pwrmod = Infix(lambda x, y: [(n ** y) / (n % y) for n in x])
+		pwradd = Infix(lambda x, y: [(n ** y) / (n + y) for n in x])
+		pwrdiv = Infix(lambda x, y: [(n ** y) / (n / y) for n in x])
+		divmul = Infix(lambda x, y: [(n / y) / (n * y) for n in x])
+		divsub = Infix(lambda x, y: [(n / y) / (n - y) for n in x])
+		divmod = Infix(lambda x, y: [(n / y) / (n % y) for n in x])
+		divpwr = Infix(lambda x, y: [(n / y) / (n ** y) for n in x])
+		divadd = Infix(lambda x, y: [(n / y) / (n + y) for n in x])
+
+	class DInv:
+		disub = Infix(lambda x, y: [1 / ((1 / n) - (1 / y)) for n in x])
+		diadd = Infix(lambda x, y: [1 / ((1 / n) + (1 / y)) for n in x])
+		dimul = Infix(lambda x, y: [1 / ((1 / n) * (1 / y)) for n in x])
+		didiv = Infix(lambda x, y: [1 / ((1 / n) / (1 / y)) for n in x])
+		dimod = Infix(lambda x, y: [1 / ((1 / n) % (1 / y)) for n in x])
+		dipwr = Infix(lambda x, y: [1 / ((1 / n) ** (1 / y)) for n in x])
+		disubr = Infix(lambda x, y: [1 / ((1 / y) - (1 / n)) for n in x])
+		diaddr = Infix(lambda x, y: [1 / ((1 / y) + (1 / n)) for n in x])
+		dimulr = Infix(lambda x, y: [1 / ((1 / y) * (1 / n)) for n in x])
+		didivr = Infix(lambda x, y: [1 / ((1 / y) / (1 / n)) for n in x])
+		dimodr = Infix(lambda x, y: [1 / ((1 / y) % (1 / n)) for n in x])
+		dipwrr = Infix(lambda x, y: [1 / ((1 / y) ** (1 / n)) for n in x])
+
+	class Bin:
+		and_ = Infix(lambda x, y: [n & y for n in x])
+		xor = Infix(lambda x, y: [n ^ y for n in x])
+		xnor = Infix(lambda x, y: [bit_not(n ^ y) for n in x])
+		xnor_uns = Infix(lambda x, y: [~(n ^ y) for n in x])
+		or_ = Infix(lambda x, y: [n | y for n in x])
+		ls = Infix(lambda x, y: [n << y for n in x])
+		rs = Infix(lambda x, y: [n >> y for n in x])
+		rls = Infix(lambda x, y: [y << n for n in x])
+		rrs = Infix(lambda x, y: [y >> n for n in x])
+		inv = Infix(lambda x, y: [bit_not(n) for n in x])  # second term is necessary but unused
+		inv_uns = Infix(lambda x, y: [~n for n in x])  # second term is necessary but unused
+
+
+class Z:
+	div = Infix(lambda x, y: [a / b for a, b in zip(x, y)])
+	mul = Infix(lambda x, y: [a * b for a, b in zip(x, y)])
+	add = Infix(lambda x, y: [a + b for a, b in zip(x, y)])
+	sub = Infix(lambda x, y: [a - b for a, b in zip(x, y)])
+	rsub = Infix(lambda x, y: [b - a for a, b in zip(x, y)])
+	pwr = Infix(lambda x, y: [a ** b for a, b in zip(x, y)])
+	rpwr = Infix(lambda x, y: [b ** a for a, b in zip(x, y)])
+	mod = Infix(lambda x, y: [a % b for a, b in zip(x, y)])
+	rmod = Infix(lambda x, y: [b % a for a, b in zip(x, y)])
+	fmod = Infix(lambda x, y: [math.fmod(a, b) for a, b in zip(x, y)])
+	rfmod = Infix(lambda x, y: [math.fmod(b, a) for a, b in zip(x, y)])
+	addstr = Infix(lambda x, y: [float(str(a).split(".")[0] + str(b)) for a, b in zip(x, y)])
+	sign = Infix(lambda x, y: [math.copysign(a, b) for a, b in zip(x, y)])
+	gcd = Infix(lambda x, y: [math.gcd(a, b) for a, b in zip(x, y)])
+	log = Infix(lambda x, y: [math.log(a, b) for a, b in zip(x, y)])
+	rlog = Infix(lambda x, y: [math.log(b, a) for a, b in zip(x, y)])
+	atan2 = Infix(lambda x, y: [math.atan2(a, b) for a, b in zip(x, y)])
+	ratan2 = Infix(lambda x, y: [math.atan2(b, a) for a, b in zip(x, y)])
+	hypot = Infix(lambda x, y: [math.hypot(a, b) for a, b in zip(x, y)])
+	rhypot = Infix(lambda x, y: [math.hypot(b, a) for a, b in zip(x, y)])
+	avg = Infix(lambda x, y: [(a + b) / 2 for a, b in zip(x, y)])
+
+	class Div:
+		addmul = Infix(lambda x, y: [(a + b) / (a * b) for a, b in zip(x, y)])
+		addsub = Infix(lambda x, y: [(a + b) / (a - b) for a, b in zip(x, y)])
+		addmod = Infix(lambda x, y: [(a + b) / (a % b) for a, b in zip(x, y)])
+		addpwr = Infix(lambda x, y: [(a + b) / (a ** b) for a, b in zip(x, y)])
+		adddiv = Infix(lambda x, y: [(a + b) / (a / b) for a, b in zip(x, y)])
+		submul = Infix(lambda x, y: [(a - b) / (a * b) for a, b in zip(x, y)])
+		subadd = Infix(lambda x, y: [(a - b) / (a + b) for a, b in zip(x, y)])
+		submod = Infix(lambda x, y: [(a - b) / (a % b) for a, b in zip(x, y)])
+		subpwr = Infix(lambda x, y: [(a - b) / (a ** b) for a, b in zip(x, y)])
+		subdiv = Infix(lambda x, y: [(a - b) / (a / b) for a, b in zip(x, y)])
+		muladd = Infix(lambda x, y: [(a * b) / (a + b) for a, b in zip(x, y)])
+		mulsub = Infix(lambda x, y: [(a * b) / (a - b) for a, b in zip(x, y)])
+		mulmod = Infix(lambda x, y: [(a * b) / (a % b) for a, b in zip(x, y)])
+		mulpwr = Infix(lambda x, y: [(a * b) / (a ** b) for a, b in zip(x, y)])
+		muldiv = Infix(lambda x, y: [(a * b) / (a / b) for a, b in zip(x, y)])
+		modmul = Infix(lambda x, y: [(a % b) / (a * b) for a, b in zip(x, y)])
+		modsub = Infix(lambda x, y: [(a % b) / (a - b) for a, b in zip(x, y)])
+		modadd = Infix(lambda x, y: [(a % b) / (a + b) for a, b in zip(x, y)])
+		modpwr = Infix(lambda x, y: [(a % b) / (a ** b) for a, b in zip(x, y)])
+		moddiv = Infix(lambda x, y: [(a % b) / (a / b) for a, b in zip(x, y)])
+		pwrmul = Infix(lambda x, y: [(a ** b) / (a * b) for a, b in zip(x, y)])
+		pwrsub = Infix(lambda x, y: [(a ** b) / (a - b) for a, b in zip(x, y)])
+		pwrmod = Infix(lambda x, y: [(a ** b) / (a % b) for a, b in zip(x, y)])
+		pwradd = Infix(lambda x, y: [(a ** b) / (a + b) for a, b in zip(x, y)])
+		pwrdiv = Infix(lambda x, y: [(a ** b) / (a / b) for a, b in zip(x, y)])
+		divmul = Infix(lambda x, y: [(a / b) / (a * b) for a, b in zip(x, y)])
+		divsub = Infix(lambda x, y: [(a / b) / (a - b) for a, b in zip(x, y)])
+		divmod = Infix(lambda x, y: [(a / b) / (a % b) for a, b in zip(x, y)])
+		divpwr = Infix(lambda x, y: [(a / b) / (a ** b) for a, b in zip(x, y)])
+		divadd = Infix(lambda x, y: [(a / b) / (a + b) for a, b in zip(x, y)])
+
+	class DInv:
+		disub = Infix(lambda x, y: [1 / ((1 / a) - (1 / b)) for a, b in zip(x, y)])
+		diadd = Infix(lambda x, y: [1 / ((1 / a) + (1 / b)) for a, b in zip(x, y)])
+		dimul = Infix(lambda x, y: [1 / ((1 / a) * (1 / b)) for a, b in zip(x, y)])
+		didiv = Infix(lambda x, y: [1 / ((1 / a) / (1 / b)) for a, b in zip(x, y)])
+		dimod = Infix(lambda x, y: [1 / ((1 / a) % (1 / b)) for a, b in zip(x, y)])
+		dipwr = Infix(lambda x, y: [1 / ((1 / a) ** (1 / b)) for a, b in zip(x, y)])
+		disubr = Infix(lambda x, y: [1 / ((1 / b) - (1 / a)) for a, b in zip(x, y)])
+		diaddr = Infix(lambda x, y: [1 / ((1 / b) + (1 / a)) for a, b in zip(x, y)])
+		dimulr = Infix(lambda x, y: [1 / ((1 / b) * (1 / a)) for a, b in zip(x, y)])
+		didivr = Infix(lambda x, y: [1 / ((1 / b) / (1 / a)) for a, b in zip(x, y)])
+		dimodr = Infix(lambda x, y: [1 / ((1 / b) % (1 / a)) for a, b in zip(x, y)])
+		dipwrr = Infix(lambda x, y: [1 / ((1 / b) ** (1 / a)) for a, b in zip(x, y)])
+
+	class Bin:
+		and_ = Infix(lambda x, y: [a & b for a, b in zip(x, y)])
+		xor = Infix(lambda x, y: [a ^ b for a, b in zip(x, y)])
+		xnor = Infix(lambda x, y: [bit_not(a ^ b) for a, b in zip(x, y)])
+		xnor_uns = Infix(lambda x, y: [~(a ^ b) for a, b in zip(x, y)])
+		or_ = Infix(lambda x, y: [a | b for a, b in zip(x, y)])
+		ls = Infix(lambda x, y: [a << b for a, b in zip(x, y)])
+		rs = Infix(lambda x, y: [a >> b for a, b in zip(x, y)])
+		rls = Infix(lambda x, y: [b << a for a, b in zip(x, y)])
+		rrs = Infix(lambda x, y: [b >> a for a, b in zip(x, y)])
+
 
 avg = Infix(lambda x, y: (x + y) / 2)
-inv = Infix(lambda x, y: [~ n for n in x])  # second term is necessary but unused
-fact = Infix(lambda x, y: [math.factorial(n) for n in x])  # second term is necessary but unused
-replace = Infix(lambda x, y: [n.replace(y[0], y[1]) for n in x])
-i_set = Infix(lambda x, y: [y * len(x)])
-i_equ = Infix(lambda x, y: [n == y for n in x])
-i_nequ = Infix(lambda x, y: [n == y for n in x])
-z_equ = Infix(lambda x, y: [a == b for a, b in zip(x, y)])
-z_nequ = Infix(lambda x, y: [not(a == b) for a, b in zip(x, y)])
-i_not = Infix(lambda x, y: [not n for n in x])  # second term is necessary but unused
-i_and = Infix(lambda x, y: [n and y for n in x])
-i_nand = Infix(lambda x, y: [not(n and y) for n in x])
-i_or = Infix(lambda x, y: [n or y for n in x])
-i_nor = Infix(lambda x, y: [not(n or y) for n in x])
-z_and = Infix(lambda x, y: [a and b for a, b in zip(x, y)])
-z_nand = Infix(lambda x, y: [not(a and b) for a, b in zip(x, y)])
-z_or = Infix(lambda x, y: [a or b for a, b in zip(x, y)])
-z_nor = Infix(lambda x, y: [not(a or b) for a, b in zip(x, y)])
+
+
+class B:
+	not_ = Infix(lambda x, y: [not n for n in x])  # second term is necessary but unused
+
+	class I:
+		equ = Infix(lambda x, y: [n == y for n in x])
+		nequ = Infix(lambda x, y: [n == y for n in x])
+		not_ = Infix(lambda x, y: [not n for n in x])  # second term is necessary but unused
+		and_ = Infix(lambda x, y: [n and y for n in x])
+		nand = Infix(lambda x, y: [not(n and y) for n in x])
+		or_ = Infix(lambda x, y: [n or y for n in x])
+		nor = Infix(lambda x, y: [not(n or y) for n in x])
+		xor = Infix(lambda x, y: [n ^ y for n in x])
+		xnor = Infix(lambda x, y: [not(n ^ y) for n in x])
+
+	class Z:
+		equ = Infix(lambda x, y: [a == b for a, b in zip(x, y)])
+		nequ = Infix(lambda x, y: [not(a == b) for a, b in zip(x, y)])
+		not_ = Infix(lambda x, y: [not n for n in x])  # second term is necessary but unused
+		and_ = Infix(lambda x, y: [a and b for a, b in zip(x, y)])
+		nand = Infix(lambda x, y: [not(a and b) for a, b in zip(x, y)])
+		or_ = Infix(lambda x, y: [a or b for a, b in zip(x, y)])
+		nor = Infix(lambda x, y: [not(a or b) for a, b in zip(x, y)])
+		xor = Infix(lambda x, y: [a ^ b for a, b in zip(x, y)])
+		xnor = Infix(lambda x, y: [not(a ^ b) for a, b in zip(x, y)])
 
 
 def timeme(method, total_var=None):
