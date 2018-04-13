@@ -4,9 +4,10 @@ import inspect
 
 
 class Infix:
-	def __init__(self, function, help_str=""):
+	def __init__(self, function, help_str="", help_dict=None):
 		self.function = function
 		self.help_str = help_str
+		self.help_dict = help_dict
 
 	def __ror__(self, other):
 		return Infix(lambda x, self=self, other=other: self.function(other, x))
@@ -24,10 +25,19 @@ class Infix:
 		return self.function(value1, value2)
 
 	def help(self):
-		if self.help_str == "":
-			data = inspect.getsource(self.function).replace("\t", "").replace("\n", "")
+		if self.help_dict is not None:
+			if self.help_str == "":
+				data = inspect.getsource(self.function).replace("\t", "").replace("\n", "")
+			else:
+				data = inspect.getsource(self.function).replace("\t", "").replace("\n", "") + " <?> " + self.help_str
 		else:
-			data = inspect.getsource(self.function).replace("\t", "").replace("\n", "") + " <?> " + self.help_str
+			data = self.help_dict["name"] + " - "
+			try:
+				data += self.help_dict["notes"] + " - "
+			except KeyError:
+				pass
+			data += self.help_dict["type"] + " - "
+			data += inspect.getsource(self.function).replace("\t", "").replace("\n", "")
 		print(data)
 		return data
 
@@ -41,32 +51,61 @@ def bit_not(n):
 
 
 class I:
-	div = Infix(lambda x, y: [n / y for n in x])
-	mul = Infix(lambda x, y: [n * y for n in x])
-	add = Infix(lambda x, y: [n + y for n in x])
-	sub = Infix(lambda x, y: [n - y for n in x])
-	rsub = Infix(lambda x, y: [y - n for n in x])
-	pwr = Infix(lambda x, y: [n ** y for n in x])
-	rpwr = Infix(lambda x, y: [y ** n for n in x])
-	mod = Infix(lambda x, y: [n % y for n in x])
-	rmod = Infix(lambda x, y: [y % n for n in x])
-	fmod = Infix(lambda x, y: [math.fmod(n, y) for n in x])
-	rfmod = Infix(lambda x, y: [math.fmod(y, n) for n in x])
-	sign = Infix(lambda x, y: [math.copysign(n, y) for n in x])
-	gcd = Infix(lambda x, y: [math.gcd(n, y) for n in x])
-	log = Infix(lambda x, y: [math.log(n, y) for n in x])
-	rlog = Infix(lambda x, y: [math.log(y, n) for n in x])
-	atan2 = Infix(lambda x, y: [math.atan2(n, y) for n in x])
-	ratan2 = Infix(lambda x, y: [math.atan2(y, n) for n in x])
-	hypot = Infix(lambda x, y: [math.hypot(n, y) for n in x])
-	rhypot = Infix(lambda x, y: [math.hypot(y, n) for n in x])
-	avg = Infix(lambda x, y: [(n + y) / 2 for n in x])
-	fact = Infix(lambda x, y: [math.factorial(n) for n in x])  # second term is necessary but unused
-	repl = Infix(lambda x, y: [y[1] if n == y[0] else n for n in x])
-	replm = Infix(lambda x, y: [y[n] if n in y else n for n in x])
-	set = Infix(lambda x, y: [y * len(x)])
+	I_help_dict = {
+		"div": {"name": "div: division", "type": "iter to non-iter"},
+		"rdiv": {"name": "rdiv: division, reverse", "type": "iter to non-iter"},
+		"mul": {"name": "mul: multiplication", "type": "iter to non-iter"},
+		"add": {"name": "add: addition", "type": "iter to non-iter"},
+		"sub": {"name": "sub: subtraction", "type": "iter to non-iter"},
+		"rsub": {"name": "rsub: subtraction, reverse", "type": "iter to non-iter"},
+		"pwr": {"name": "pwr: power", "type": "iter to non-iter"},
+		"rpwr": {"name": "rpwr: power, reverse", "type": "iter to non-iter"},
+		"mod": {"name": "mod: modulo", "type": "iter to non-iter"},
+		"rmod": {"name": "rmod: modulo, reverse", "type": "iter to non-iter"},
+		"fmod": {"name": "fmod: fmod from math", "type": "iter to non-iter"},
+		"rfmod": {"name": "rfmod: fmod from math, reversed", "type": "iter to non-iter"},
+		"sign": {"name": "sign: sets sign", "type": "iter to non-iter"},
+		"gcd": {"name": "gcd: greatest common denominator", "type": "iter to non-iter"},
+		"log": {"name": "log: logarithm base n", "type": "iter to non-iter"},
+		"rlog": {"name": "rlog: logarithm base n, reversed", "type": "iter to non-iter"},
+		"atan2": {"name": "atan2: 2d atan", "type": "iter to non-iter"},
+		"ratan2": {"name": "ratan2: 2d atan, reversed", "type": "iter to non-iter"},
+		"hypot": {"name": "hypot: euclidean distance", "type": "iter to non-iter"},
+		"rhypot": {"name": "rhypot: euclidean distance, reversed", "type": "iter to non-iter"},
+		"avg": {"name": "avg: average", "type": "iter to non-iter", "notes": "second input is necessary but unused"},
+		"fact": {"name": "fact: factorial (!)", "type": "iter to non-iter"},
+		"repl": {"name": "repl: replace", "type": "iter to non-iter", "notes": "use a list or tuple with two items, first is looked for to be replaces, second is what replaces it"},
+		"replm": {"name": "replm: multi replace", "type": "iter to non-iter", "notes": "use a dictionary with a key for the item to be found to replace, and it's key'd item is swapped in"},
+		"set": {"name": "set: replace entire array", "type": "iter to non-iter"}
+	}
+	div = Infix(lambda x, y: [n / y for n in x], I_help_dict["div"])
+	rdiv = Infix(lambda x, y: [y / n for n in x], I_help_dict["rdiv"])
+	mul = Infix(lambda x, y: [n * y for n in x], I_help_dict["mul"])
+	add = Infix(lambda x, y: [n + y for n in x], I_help_dict["add"])
+	sub = Infix(lambda x, y: [n - y for n in x], I_help_dict["sub"])
+	rsub = Infix(lambda x, y: [y - n for n in x], I_help_dict["rsub"])
+	pwr = Infix(lambda x, y: [n ** y for n in x], I_help_dict["pwr"])
+	rpwr = Infix(lambda x, y: [y ** n for n in x], I_help_dict["rpwr"])
+	mod = Infix(lambda x, y: [n % y for n in x], I_help_dict["mod"])
+	rmod = Infix(lambda x, y: [y % n for n in x], I_help_dict["rmod"])
+	fmod = Infix(lambda x, y: [math.fmod(n, y) for n in x], I_help_dict["fmod"])
+	rfmod = Infix(lambda x, y: [math.fmod(y, n) for n in x], I_help_dict["rfmod"])
+	sign = Infix(lambda x, y: [math.copysign(n, y) for n in x], I_help_dict["sign"])
+	gcd = Infix(lambda x, y: [math.gcd(n, y) for n in x], I_help_dict["gcd"])
+	log = Infix(lambda x, y: [math.log(n, y) for n in x], I_help_dict["log"])
+	rlog = Infix(lambda x, y: [math.log(y, n) for n in x], I_help_dict["rlog"])
+	atan2 = Infix(lambda x, y: [math.atan2(n, y) for n in x], I_help_dict["atan2"])
+	ratan2 = Infix(lambda x, y: [math.atan2(y, n) for n in x], I_help_dict["ratan2"])
+	hypot = Infix(lambda x, y: [math.hypot(n, y) for n in x], I_help_dict["hypot"])
+	rhypot = Infix(lambda x, y: [math.hypot(y, n) for n in x], I_help_dict["rhypot"])
+	avg = Infix(lambda x, y: [(n + y) / 2 for n in x], I_help_dict["avg"])
+	fact = Infix(lambda x, y: [math.factorial(n) for n in x], I_help_dict["fact"])  # second term is necessary but unused
+	repl = Infix(lambda x, y: [y[1] if n == y[0] else n for n in x], I_help_dict["repl"])
+	replm = Infix(lambda x, y: [y[n] if n in y else n for n in x], I_help_dict["replm"])
+	set = Infix(lambda x, y: [y * len(x)], I_help_dict["set"])
 
 	class Div:
+		Div_help_dict = {}
 		addmul = Infix(lambda x, y: [(n + y) / (n * y) for n in x])
 		addsub = Infix(lambda x, y: [(n + y) / (n - y) for n in x])
 		addmod = Infix(lambda x, y: [(n + y) / (n % y) for n in x])
@@ -128,6 +167,7 @@ class I:
 
 class Z:
 	div = Infix(lambda x, y: [a / b for a, b in zip(x, y)])
+	rdiv = Infix(lambda x, y: [b / a for a, b in zip(x, y)])
 	mul = Infix(lambda x, y: [a * b for a, b in zip(x, y)])
 	add = Infix(lambda x, y: [a + b for a, b in zip(x, y)])
 	sub = Infix(lambda x, y: [a - b for a, b in zip(x, y)])
@@ -234,6 +274,26 @@ class B:
 		nor = Infix(lambda x, y: [not(a or b) for a, b in zip(x, y)])
 		xor = Infix(lambda x, y: [a ^ b for a, b in zip(x, y)])
 		xnor = Infix(lambda x, y: [not(a ^ b) for a, b in zip(x, y)])
+
+
+def combine(new: dict, existing: dict) -> dict:
+	out = {}
+	for key in new.keys():
+		out[key] = new[key]
+	for key in existing.keys():
+		out[key] = existing[key]
+	return out
+
+
+class D:
+	append = Infix(lambda x, y: dict(**x, **y))
+	combine = append
+	append_non_str = Infix(lambda x, y: combine(x, y))
+	combine_non_str = append_non_str
+
+
+class S:
+	pass
 
 
 def timeme(method, total_var=None):
