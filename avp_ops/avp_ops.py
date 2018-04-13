@@ -188,6 +188,7 @@ class Z:
 	hypot = Infix(lambda x, y: [math.hypot(a, b) for a, b in zip(x, y)])
 	rhypot = Infix(lambda x, y: [math.hypot(b, a) for a, b in zip(x, y)])
 	avg = Infix(lambda x, y: [(a + b) / 2 for a, b in zip(x, y)])
+	intersect = Infix(lambda x, y: list(set(x).intersection(y)))
 
 	class Div:
 		addmul = Infix(lambda x, y: [(a + b) / (a * b) for a, b in zip(x, y)])
@@ -285,15 +286,62 @@ def combine(new: dict, existing: dict) -> dict:
 	return out
 
 
+def dict_intersect(x, y, appendpair=("_l", "_r")):
+	xk, yk, xy = list(x.keys()), list(y.keys()), {}
+	for key in list(set(xk).intersection(yk)):
+		xy[str(key) + appendpair[0]] = x.pop(key)
+		xy[str(key) + appendpair[1]] = y.pop(key)
+	return xy
+
+
+def dict_symdiff(x, y):
+	xk, yk, xy = list(x.keys()), list(y.keys()), {}
+	for key in list(set(xk).symmetric_difference(yk)):
+		xy[str(key)] = x.pop(key)
+		xy[str(key)] = y.pop(key)
+	return xy
+
+
+def string_sub_l(string, remove):
+	string = list(string)
+	for i in range(len(remove)): string[i] = "\v" if string[i] == remove[i] else string[i]
+	return "".join(string).replace("\v", "")
+
+
+def string_sub_r(string, remove):
+	string, remove = list(string)[::-1], remove[::-1]
+	for i in range(len(remove)): string[i] = "\v" if string[i] == remove[i] else string[i]
+	return "".join(string[::-1]).replace("\v", "")
+
+
+def string_sub_m(x, y):
+	for n in list(y.keys()):
+		x = x.replace(n, y[n])
+	return x
+
+
 class D:
 	append = Infix(lambda x, y: dict(**x, **y))
 	combine = append
 	append_non_str = Infix(lambda x, y: combine(x, y))
 	combine_non_str = append_non_str
+	intersect = Infix(lambda x, y: dict_intersect(x, y))
+	and_ = intersect
+	mutex = Infix(lambda x, y: dict_symdiff(x, y))
+	symdiff = mutex
+	xor = mutex
 
 
 class S:
-	pass
+	subt_l = Infix(lambda x, y: string_sub_l(x, y))
+	subt_r = Infix(lambda x, y: string_sub_r(x, y))
+	rsubt_l = Infix(lambda x, y: string_sub_l(x, y))
+	rsubt_r = Infix(lambda x, y: string_sub_r(x, y))
+	sub = Infix(lambda x, y: x.replace(y, ""))
+	repl_t = Infix(lambda x, y: [x.replace(str(y[0]), str(y[1]))])
+	repl_d = Infix(lambda x, y: string_sub_m(x, y))
+	repl = repl_t
+	repl_m = repl_d
 
 
 def timeme(method, total_var=None):
