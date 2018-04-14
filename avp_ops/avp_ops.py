@@ -3,26 +3,109 @@ import math
 import inspect
 
 
-class Infix:
+class OpTwo:
+	"""two input custom operator"""
 	def __init__(self, function, help_str="", help_dict=None):
 		self.function = function
 		self.help_str = help_str
 		self.help_dict = help_dict
 
 	def __ror__(self, other):
-		return Infix(lambda x, self=self, other=other: self.function(other, x))
+		return OpTwo(lambda x, self=self, other=other: self.function(other, x))
 
 	def __or__(self, other):
 		return self.function(other)
 
 	def __rlshift__(self, other):
-		return Infix(lambda x, self=self, other=other: self.function(other, x))
+		return OpTwo(lambda x, self=self, other=other: self.function(other, x))
 
 	def __rshift__(self, other):
 		return self.function(other)
 
+	def __rrshift__(self, other):
+		return OpTwo(lambda x, self=self, other=other: self.function(other, x))
+
+	def __lshift__(self, other):
+		return self.function(other)
+
+	def __rmod__(self, other):
+		return OpTwo(lambda x, self=self, other=other: self.function(other, x))
+
+	def __mod__(self, other):
+		return self.function(other)
+
+	def __rmatmul__(self, other):
+		return OpTwo(lambda x, self=self, other=other: self.function(other, x))
+
+	def __matmul__(self, other):
+		return self.function(other)
+
 	def __call__(self, value1, value2):
 		return self.function(value1, value2)
+
+	def help(self):
+		if self.help_dict is not None:
+			if self.help_str == "":
+				data = inspect.getsource(self.function).replace("\t", "").replace("\n", "")
+			else:
+				data = inspect.getsource(self.function).replace("\t", "").replace("\n", "") + " <?> " + self.help_str
+		else:
+			data = self.help_dict["name"] + " - "
+			try:
+				data += self.help_dict["notes"] + " - "
+			except KeyError:
+				pass
+			data += self.help_dict["type"] + " - "
+			data += inspect.getsource(self.function).replace("\t", "").replace("\n", "")
+		print(data)
+		return data
+
+
+class Op:
+	"""one input custom operator"""
+	def __init__(self, function, help_str="", help_dict=None):
+		self.function = function
+		self.help_str = help_str
+		self.help_dict = help_dict
+
+	def __ror__(self, other):
+		return self.function(other)
+
+	def __rlshift__(self, other):
+		return self.function(other)
+
+	def __rrshift__(self, other):
+		return self.function(other)
+
+	def __rmod__(self, other):
+		return self.function(other)
+
+	def __rmatmul__(self, other):
+		return self.function(other)
+
+	def __or__(self, other):
+		return self.function(other)
+
+	def __lshift__(self, other):
+		return self.function(other)
+
+	def __rshift__(self, other):
+		return self.function(other)
+
+	def __mod__(self, other):
+		return self.function(other)
+
+	def __lt__(self, other):
+		return self.function(other)
+
+	def __gt__(self, other):
+		return self.function(other)
+
+	def __matmul__(self, other):
+		return self.function(other)
+
+	def __call__(self, value1):
+		return self.function(value1)
 
 	def help(self):
 		if self.help_dict is not None:
@@ -78,212 +161,218 @@ class I:
 		"replm": {"name": "replm: multi replace", "type": "iter to non-iter", "notes": "use a dictionary with a key for the item to be found to replace, and it's key'd item is swapped in"},
 		"set": {"name": "set: replace entire array", "type": "iter to non-iter"}
 	}
-	div = Infix(lambda x, y: [n / y for n in x], I_help_dict["div"])
-	rdiv = Infix(lambda x, y: [y / n for n in x], I_help_dict["rdiv"])
-	mul = Infix(lambda x, y: [n * y for n in x], I_help_dict["mul"])
-	add = Infix(lambda x, y: [n + y for n in x], I_help_dict["add"])
-	sub = Infix(lambda x, y: [n - y for n in x], I_help_dict["sub"])
-	rsub = Infix(lambda x, y: [y - n for n in x], I_help_dict["rsub"])
-	pwr = Infix(lambda x, y: [n ** y for n in x], I_help_dict["pwr"])
-	rpwr = Infix(lambda x, y: [y ** n for n in x], I_help_dict["rpwr"])
-	mod = Infix(lambda x, y: [n % y for n in x], I_help_dict["mod"])
-	rmod = Infix(lambda x, y: [y % n for n in x], I_help_dict["rmod"])
-	fmod = Infix(lambda x, y: [math.fmod(n, y) for n in x], I_help_dict["fmod"])
-	rfmod = Infix(lambda x, y: [math.fmod(y, n) for n in x], I_help_dict["rfmod"])
-	sign = Infix(lambda x, y: [math.copysign(n, y) for n in x], I_help_dict["sign"])
-	gcd = Infix(lambda x, y: [math.gcd(n, y) for n in x], I_help_dict["gcd"])
-	log = Infix(lambda x, y: [math.log(n, y) for n in x], I_help_dict["log"])
-	rlog = Infix(lambda x, y: [math.log(y, n) for n in x], I_help_dict["rlog"])
-	atan2 = Infix(lambda x, y: [math.atan2(n, y) for n in x], I_help_dict["atan2"])
-	ratan2 = Infix(lambda x, y: [math.atan2(y, n) for n in x], I_help_dict["ratan2"])
-	hypot = Infix(lambda x, y: [math.hypot(n, y) for n in x], I_help_dict["hypot"])
-	rhypot = Infix(lambda x, y: [math.hypot(y, n) for n in x], I_help_dict["rhypot"])
-	avg = Infix(lambda x, y: [(n + y) / 2 for n in x], I_help_dict["avg"])
-	fact = Infix(lambda x, y: [math.factorial(n) for n in x], I_help_dict["fact"])  # second term is necessary but unused
-	repl = Infix(lambda x, y: [y[1] if n == y[0] else n for n in x], I_help_dict["repl"])
-	replm = Infix(lambda x, y: [y[n] if n in y else n for n in x], I_help_dict["replm"])
-	set = Infix(lambda x, y: [y * len(x)], I_help_dict["set"])
+	div = OpTwo(lambda x, y: [n / y for n in x], I_help_dict["div"])
+	rdiv = OpTwo(lambda x, y: [y / n for n in x], I_help_dict["rdiv"])
+	mul = OpTwo(lambda x, y: [n * y for n in x], I_help_dict["mul"])
+	add = OpTwo(lambda x, y: [n + y for n in x], I_help_dict["add"])
+	sub = OpTwo(lambda x, y: [n - y for n in x], I_help_dict["sub"])
+	rsub = OpTwo(lambda x, y: [y - n for n in x], I_help_dict["rsub"])
+	pwr = OpTwo(lambda x, y: [n ** y for n in x], I_help_dict["pwr"])
+	rpwr = OpTwo(lambda x, y: [y ** n for n in x], I_help_dict["rpwr"])
+	mod = OpTwo(lambda x, y: [n % y for n in x], I_help_dict["mod"])
+	rmod = OpTwo(lambda x, y: [y % n for n in x], I_help_dict["rmod"])
+	fmod = OpTwo(lambda x, y: [math.fmod(n, y) for n in x], I_help_dict["fmod"])
+	rfmod = OpTwo(lambda x, y: [math.fmod(y, n) for n in x], I_help_dict["rfmod"])
+	sign = OpTwo(lambda x, y: [math.copysign(n, y) for n in x], I_help_dict["sign"])
+	gcd = OpTwo(lambda x, y: [math.gcd(n, y) for n in x], I_help_dict["gcd"])
+	log = OpTwo(lambda x, y: [math.log(n, y) for n in x], I_help_dict["log"])
+	rlog = OpTwo(lambda x, y: [math.log(y, n) for n in x], I_help_dict["rlog"])
+	atan2 = OpTwo(lambda x, y: [math.atan2(n, y) for n in x], I_help_dict["atan2"])
+	ratan2 = OpTwo(lambda x, y: [math.atan2(y, n) for n in x], I_help_dict["ratan2"])
+	hypot = OpTwo(lambda x, y: [math.hypot(n, y) for n in x], I_help_dict["hypot"])
+	rhypot = OpTwo(lambda x, y: [math.hypot(y, n) for n in x], I_help_dict["rhypot"])
+	avg = OpTwo(lambda x, y: [(n + y) / 2 for n in x], I_help_dict["avg"])
+	fact = Op(lambda x: [math.factorial(n) for n in x], I_help_dict["fact"])  # Single input
+	repl = OpTwo(lambda x, y: [y[1] if n == y[0] else n for n in x], I_help_dict["repl"])
+	replm = OpTwo(lambda x, y: [y[n] if n in y else n for n in x], I_help_dict["replm"])
+	set = OpTwo(lambda x, y: [y] * len(x), I_help_dict["set"])
+	types = Op(lambda x: [type(n) for n in x])  # Single input
 
 	class Div:
 		Div_help_dict = {}
-		addmul = Infix(lambda x, y: [(n + y) / (n * y) for n in x])
-		addsub = Infix(lambda x, y: [(n + y) / (n - y) for n in x])
-		addmod = Infix(lambda x, y: [(n + y) / (n % y) for n in x])
-		addpwr = Infix(lambda x, y: [(n + y) / (n ** y) for n in x])
-		adddiv = Infix(lambda x, y: [(n + y) / (n / y) for n in x])
-		submul = Infix(lambda x, y: [(n - y) / (n * y) for n in x])
-		subadd = Infix(lambda x, y: [(n - y) / (n + y) for n in x])
-		submod = Infix(lambda x, y: [(n - y) / (n % y) for n in x])
-		subpwr = Infix(lambda x, y: [(n - y) / (n ** y) for n in x])
-		subdiv = Infix(lambda x, y: [(n - y) / (n / y) for n in x])
-		muladd = Infix(lambda x, y: [(n * y) / (n + y) for n in x])
-		mulsub = Infix(lambda x, y: [(n * y) / (n - y) for n in x])
-		mulmod = Infix(lambda x, y: [(n * y) / (n % y) for n in x])
-		mulpwr = Infix(lambda x, y: [(n * y) / (n ** y) for n in x])
-		muldiv = Infix(lambda x, y: [(n * y) / (n / y) for n in x])
-		modmul = Infix(lambda x, y: [(n % y) / (n * y) for n in x])
-		modsub = Infix(lambda x, y: [(n % y) / (n - y) for n in x])
-		modadd = Infix(lambda x, y: [(n % y) / (n + y) for n in x])
-		modpwr = Infix(lambda x, y: [(n % y) / (n ** y) for n in x])
-		moddiv = Infix(lambda x, y: [(n % y) / (n / y) for n in x])
-		pwrmul = Infix(lambda x, y: [(n ** y) / (n * y) for n in x])
-		pwrsub = Infix(lambda x, y: [(n ** y) / (n - y) for n in x])
-		pwrmod = Infix(lambda x, y: [(n ** y) / (n % y) for n in x])
-		pwradd = Infix(lambda x, y: [(n ** y) / (n + y) for n in x])
-		pwrdiv = Infix(lambda x, y: [(n ** y) / (n / y) for n in x])
-		divmul = Infix(lambda x, y: [(n / y) / (n * y) for n in x])
-		divsub = Infix(lambda x, y: [(n / y) / (n - y) for n in x])
-		divmod = Infix(lambda x, y: [(n / y) / (n % y) for n in x])
-		divpwr = Infix(lambda x, y: [(n / y) / (n ** y) for n in x])
-		divadd = Infix(lambda x, y: [(n / y) / (n + y) for n in x])
+		addmul = OpTwo(lambda x, y: [(n + y) / (n * y) for n in x])
+		addsub = OpTwo(lambda x, y: [(n + y) / (n - y) for n in x])
+		addmod = OpTwo(lambda x, y: [(n + y) / (n % y) for n in x])
+		addpwr = OpTwo(lambda x, y: [(n + y) / (n ** y) for n in x])
+		adddiv = OpTwo(lambda x, y: [(n + y) / (n / y) for n in x])
+		submul = OpTwo(lambda x, y: [(n - y) / (n * y) for n in x])
+		subadd = OpTwo(lambda x, y: [(n - y) / (n + y) for n in x])
+		submod = OpTwo(lambda x, y: [(n - y) / (n % y) for n in x])
+		subpwr = OpTwo(lambda x, y: [(n - y) / (n ** y) for n in x])
+		subdiv = OpTwo(lambda x, y: [(n - y) / (n / y) for n in x])
+		muladd = OpTwo(lambda x, y: [(n * y) / (n + y) for n in x])
+		mulsub = OpTwo(lambda x, y: [(n * y) / (n - y) for n in x])
+		mulmod = OpTwo(lambda x, y: [(n * y) / (n % y) for n in x])
+		mulpwr = OpTwo(lambda x, y: [(n * y) / (n ** y) for n in x])
+		muldiv = OpTwo(lambda x, y: [(n * y) / (n / y) for n in x])
+		modmul = OpTwo(lambda x, y: [(n % y) / (n * y) for n in x])
+		modsub = OpTwo(lambda x, y: [(n % y) / (n - y) for n in x])
+		modadd = OpTwo(lambda x, y: [(n % y) / (n + y) for n in x])
+		modpwr = OpTwo(lambda x, y: [(n % y) / (n ** y) for n in x])
+		moddiv = OpTwo(lambda x, y: [(n % y) / (n / y) for n in x])
+		pwrmul = OpTwo(lambda x, y: [(n ** y) / (n * y) for n in x])
+		pwrsub = OpTwo(lambda x, y: [(n ** y) / (n - y) for n in x])
+		pwrmod = OpTwo(lambda x, y: [(n ** y) / (n % y) for n in x])
+		pwradd = OpTwo(lambda x, y: [(n ** y) / (n + y) for n in x])
+		pwrdiv = OpTwo(lambda x, y: [(n ** y) / (n / y) for n in x])
+		divmul = OpTwo(lambda x, y: [(n / y) / (n * y) for n in x])
+		divsub = OpTwo(lambda x, y: [(n / y) / (n - y) for n in x])
+		divmod = OpTwo(lambda x, y: [(n / y) / (n % y) for n in x])
+		divpwr = OpTwo(lambda x, y: [(n / y) / (n ** y) for n in x])
+		divadd = OpTwo(lambda x, y: [(n / y) / (n + y) for n in x])
 
 	class DInv:
-		disub = Infix(lambda x, y: [1 / ((1 / n) - (1 / y)) for n in x])
-		diadd = Infix(lambda x, y: [1 / ((1 / n) + (1 / y)) for n in x])
-		dimul = Infix(lambda x, y: [1 / ((1 / n) * (1 / y)) for n in x])
-		didiv = Infix(lambda x, y: [1 / ((1 / n) / (1 / y)) for n in x])
-		dimod = Infix(lambda x, y: [1 / ((1 / n) % (1 / y)) for n in x])
-		dipwr = Infix(lambda x, y: [1 / ((1 / n) ** (1 / y)) for n in x])
-		disubr = Infix(lambda x, y: [1 / ((1 / y) - (1 / n)) for n in x])
-		diaddr = Infix(lambda x, y: [1 / ((1 / y) + (1 / n)) for n in x])
-		dimulr = Infix(lambda x, y: [1 / ((1 / y) * (1 / n)) for n in x])
-		didivr = Infix(lambda x, y: [1 / ((1 / y) / (1 / n)) for n in x])
-		dimodr = Infix(lambda x, y: [1 / ((1 / y) % (1 / n)) for n in x])
-		dipwrr = Infix(lambda x, y: [1 / ((1 / y) ** (1 / n)) for n in x])
+		disub = OpTwo(lambda x, y: [1 / ((1 / n) - (1 / y)) for n in x])
+		diadd = OpTwo(lambda x, y: [1 / ((1 / n) + (1 / y)) for n in x])
+		dimul = OpTwo(lambda x, y: [1 / ((1 / n) * (1 / y)) for n in x])
+		didiv = OpTwo(lambda x, y: [1 / ((1 / n) / (1 / y)) for n in x])
+		dimod = OpTwo(lambda x, y: [1 / ((1 / n) % (1 / y)) for n in x])
+		dipwr = OpTwo(lambda x, y: [1 / ((1 / n) ** (1 / y)) for n in x])
+		disubr = OpTwo(lambda x, y: [1 / ((1 / y) - (1 / n)) for n in x])
+		diaddr = OpTwo(lambda x, y: [1 / ((1 / y) + (1 / n)) for n in x])
+		dimulr = OpTwo(lambda x, y: [1 / ((1 / y) * (1 / n)) for n in x])
+		didivr = OpTwo(lambda x, y: [1 / ((1 / y) / (1 / n)) for n in x])
+		dimodr = OpTwo(lambda x, y: [1 / ((1 / y) % (1 / n)) for n in x])
+		dipwrr = OpTwo(lambda x, y: [1 / ((1 / y) ** (1 / n)) for n in x])
 
 	class Bin:
-		and_ = Infix(lambda x, y: [n & y for n in x])
-		xor = Infix(lambda x, y: [n ^ y for n in x])
-		xnor = Infix(lambda x, y: [bit_not(n ^ y) for n in x])
-		xnor_uns = Infix(lambda x, y: [~(n ^ y) for n in x])
-		or_ = Infix(lambda x, y: [n | y for n in x])
-		ls = Infix(lambda x, y: [n << y for n in x])
-		rs = Infix(lambda x, y: [n >> y for n in x])
-		rls = Infix(lambda x, y: [y << n for n in x])
-		rrs = Infix(lambda x, y: [y >> n for n in x])
-		inv = Infix(lambda x, y: [bit_not(n) for n in x])  # second term is necessary but unused
-		inv_uns = Infix(lambda x, y: [~n for n in x])  # second term is necessary but unused
+		and_ = OpTwo(lambda x, y: [n & y for n in x])
+		xor = OpTwo(lambda x, y: [n ^ y for n in x])
+		xnor = OpTwo(lambda x, y: [bit_not(n ^ y) for n in x])
+		xnor_uns = OpTwo(lambda x, y: [~(n ^ y) for n in x])
+		or_ = OpTwo(lambda x, y: [n | y for n in x])
+		ls = OpTwo(lambda x, y: [n << y for n in x])
+		rs = OpTwo(lambda x, y: [n >> y for n in x])
+		rls = OpTwo(lambda x, y: [y << n for n in x])
+		rrs = OpTwo(lambda x, y: [y >> n for n in x])
+		inv = Op(lambda x: [bit_not(n) for n in x])  # Single input
+		inv_uns = Op(lambda x: [~n for n in x])  # Single input
 
 
 class Z:
-	div = Infix(lambda x, y: [a / b for a, b in zip(x, y)])
-	rdiv = Infix(lambda x, y: [b / a for a, b in zip(x, y)])
-	mul = Infix(lambda x, y: [a * b for a, b in zip(x, y)])
-	add = Infix(lambda x, y: [a + b for a, b in zip(x, y)])
-	sub = Infix(lambda x, y: [a - b for a, b in zip(x, y)])
-	rsub = Infix(lambda x, y: [b - a for a, b in zip(x, y)])
-	pwr = Infix(lambda x, y: [a ** b for a, b in zip(x, y)])
-	rpwr = Infix(lambda x, y: [b ** a for a, b in zip(x, y)])
-	mod = Infix(lambda x, y: [a % b for a, b in zip(x, y)])
-	rmod = Infix(lambda x, y: [b % a for a, b in zip(x, y)])
-	fmod = Infix(lambda x, y: [math.fmod(a, b) for a, b in zip(x, y)])
-	rfmod = Infix(lambda x, y: [math.fmod(b, a) for a, b in zip(x, y)])
-	addstr = Infix(lambda x, y: [float(str(a).split(".")[0] + str(b)) for a, b in zip(x, y)])
-	sign = Infix(lambda x, y: [math.copysign(a, b) for a, b in zip(x, y)])
-	gcd = Infix(lambda x, y: [math.gcd(a, b) for a, b in zip(x, y)])
-	log = Infix(lambda x, y: [math.log(a, b) for a, b in zip(x, y)])
-	rlog = Infix(lambda x, y: [math.log(b, a) for a, b in zip(x, y)])
-	atan2 = Infix(lambda x, y: [math.atan2(a, b) for a, b in zip(x, y)])
-	ratan2 = Infix(lambda x, y: [math.atan2(b, a) for a, b in zip(x, y)])
-	hypot = Infix(lambda x, y: [math.hypot(a, b) for a, b in zip(x, y)])
-	rhypot = Infix(lambda x, y: [math.hypot(b, a) for a, b in zip(x, y)])
-	avg = Infix(lambda x, y: [(a + b) / 2 for a, b in zip(x, y)])
-	intersect = Infix(lambda x, y: list(set(x).intersection(y)))
+	div = OpTwo(lambda x, y: [a / b for a, b in zip(x, y)])
+	rdiv = OpTwo(lambda x, y: [b / a for a, b in zip(x, y)])
+	mul = OpTwo(lambda x, y: [a * b for a, b in zip(x, y)])
+	add = OpTwo(lambda x, y: [a + b for a, b in zip(x, y)])
+	sub = OpTwo(lambda x, y: [a - b for a, b in zip(x, y)])
+	rsub = OpTwo(lambda x, y: [b - a for a, b in zip(x, y)])
+	pwr = OpTwo(lambda x, y: [a ** b for a, b in zip(x, y)])
+	rpwr = OpTwo(lambda x, y: [b ** a for a, b in zip(x, y)])
+	mod = OpTwo(lambda x, y: [a % b for a, b in zip(x, y)])
+	rmod = OpTwo(lambda x, y: [b % a for a, b in zip(x, y)])
+	fmod = OpTwo(lambda x, y: [math.fmod(a, b) for a, b in zip(x, y)])
+	rfmod = OpTwo(lambda x, y: [math.fmod(b, a) for a, b in zip(x, y)])
+	addstr = OpTwo(lambda x, y: [float(str(a).split(".")[0] + str(b)) for a, b in zip(x, y)])
+	sign = OpTwo(lambda x, y: [math.copysign(a, b) for a, b in zip(x, y)])
+	gcd = OpTwo(lambda x, y: [math.gcd(a, b) for a, b in zip(x, y)])
+	log = OpTwo(lambda x, y: [math.log(a, b) for a, b in zip(x, y)])
+	rlog = OpTwo(lambda x, y: [math.log(b, a) for a, b in zip(x, y)])
+	atan2 = OpTwo(lambda x, y: [math.atan2(a, b) for a, b in zip(x, y)])
+	ratan2 = OpTwo(lambda x, y: [math.atan2(b, a) for a, b in zip(x, y)])
+	hypot = OpTwo(lambda x, y: [math.hypot(a, b) for a, b in zip(x, y)])
+	rhypot = OpTwo(lambda x, y: [math.hypot(b, a) for a, b in zip(x, y)])
+	avg = OpTwo(lambda x, y: [(a + b) / 2 for a, b in zip(x, y)])
+	intersect = OpTwo(lambda x, y: list(set(x).intersection(y)))
+	types = Op(lambda x: [type(n) for n in x])  # Single input
 
 	class Div:
-		addmul = Infix(lambda x, y: [(a + b) / (a * b) for a, b in zip(x, y)])
-		addsub = Infix(lambda x, y: [(a + b) / (a - b) for a, b in zip(x, y)])
-		addmod = Infix(lambda x, y: [(a + b) / (a % b) for a, b in zip(x, y)])
-		addpwr = Infix(lambda x, y: [(a + b) / (a ** b) for a, b in zip(x, y)])
-		adddiv = Infix(lambda x, y: [(a + b) / (a / b) for a, b in zip(x, y)])
-		submul = Infix(lambda x, y: [(a - b) / (a * b) for a, b in zip(x, y)])
-		subadd = Infix(lambda x, y: [(a - b) / (a + b) for a, b in zip(x, y)])
-		submod = Infix(lambda x, y: [(a - b) / (a % b) for a, b in zip(x, y)])
-		subpwr = Infix(lambda x, y: [(a - b) / (a ** b) for a, b in zip(x, y)])
-		subdiv = Infix(lambda x, y: [(a - b) / (a / b) for a, b in zip(x, y)])
-		muladd = Infix(lambda x, y: [(a * b) / (a + b) for a, b in zip(x, y)])
-		mulsub = Infix(lambda x, y: [(a * b) / (a - b) for a, b in zip(x, y)])
-		mulmod = Infix(lambda x, y: [(a * b) / (a % b) for a, b in zip(x, y)])
-		mulpwr = Infix(lambda x, y: [(a * b) / (a ** b) for a, b in zip(x, y)])
-		muldiv = Infix(lambda x, y: [(a * b) / (a / b) for a, b in zip(x, y)])
-		modmul = Infix(lambda x, y: [(a % b) / (a * b) for a, b in zip(x, y)])
-		modsub = Infix(lambda x, y: [(a % b) / (a - b) for a, b in zip(x, y)])
-		modadd = Infix(lambda x, y: [(a % b) / (a + b) for a, b in zip(x, y)])
-		modpwr = Infix(lambda x, y: [(a % b) / (a ** b) for a, b in zip(x, y)])
-		moddiv = Infix(lambda x, y: [(a % b) / (a / b) for a, b in zip(x, y)])
-		pwrmul = Infix(lambda x, y: [(a ** b) / (a * b) for a, b in zip(x, y)])
-		pwrsub = Infix(lambda x, y: [(a ** b) / (a - b) for a, b in zip(x, y)])
-		pwrmod = Infix(lambda x, y: [(a ** b) / (a % b) for a, b in zip(x, y)])
-		pwradd = Infix(lambda x, y: [(a ** b) / (a + b) for a, b in zip(x, y)])
-		pwrdiv = Infix(lambda x, y: [(a ** b) / (a / b) for a, b in zip(x, y)])
-		divmul = Infix(lambda x, y: [(a / b) / (a * b) for a, b in zip(x, y)])
-		divsub = Infix(lambda x, y: [(a / b) / (a - b) for a, b in zip(x, y)])
-		divmod = Infix(lambda x, y: [(a / b) / (a % b) for a, b in zip(x, y)])
-		divpwr = Infix(lambda x, y: [(a / b) / (a ** b) for a, b in zip(x, y)])
-		divadd = Infix(lambda x, y: [(a / b) / (a + b) for a, b in zip(x, y)])
+		addmul = OpTwo(lambda x, y: [(a + b) / (a * b) for a, b in zip(x, y)])
+		addsub = OpTwo(lambda x, y: [(a + b) / (a - b) for a, b in zip(x, y)])
+		addmod = OpTwo(lambda x, y: [(a + b) / (a % b) for a, b in zip(x, y)])
+		addpwr = OpTwo(lambda x, y: [(a + b) / (a ** b) for a, b in zip(x, y)])
+		adddiv = OpTwo(lambda x, y: [(a + b) / (a / b) for a, b in zip(x, y)])
+		submul = OpTwo(lambda x, y: [(a - b) / (a * b) for a, b in zip(x, y)])
+		subadd = OpTwo(lambda x, y: [(a - b) / (a + b) for a, b in zip(x, y)])
+		submod = OpTwo(lambda x, y: [(a - b) / (a % b) for a, b in zip(x, y)])
+		subpwr = OpTwo(lambda x, y: [(a - b) / (a ** b) for a, b in zip(x, y)])
+		subdiv = OpTwo(lambda x, y: [(a - b) / (a / b) for a, b in zip(x, y)])
+		muladd = OpTwo(lambda x, y: [(a * b) / (a + b) for a, b in zip(x, y)])
+		mulsub = OpTwo(lambda x, y: [(a * b) / (a - b) for a, b in zip(x, y)])
+		mulmod = OpTwo(lambda x, y: [(a * b) / (a % b) for a, b in zip(x, y)])
+		mulpwr = OpTwo(lambda x, y: [(a * b) / (a ** b) for a, b in zip(x, y)])
+		muldiv = OpTwo(lambda x, y: [(a * b) / (a / b) for a, b in zip(x, y)])
+		modmul = OpTwo(lambda x, y: [(a % b) / (a * b) for a, b in zip(x, y)])
+		modsub = OpTwo(lambda x, y: [(a % b) / (a - b) for a, b in zip(x, y)])
+		modadd = OpTwo(lambda x, y: [(a % b) / (a + b) for a, b in zip(x, y)])
+		modpwr = OpTwo(lambda x, y: [(a % b) / (a ** b) for a, b in zip(x, y)])
+		moddiv = OpTwo(lambda x, y: [(a % b) / (a / b) for a, b in zip(x, y)])
+		pwrmul = OpTwo(lambda x, y: [(a ** b) / (a * b) for a, b in zip(x, y)])
+		pwrsub = OpTwo(lambda x, y: [(a ** b) / (a - b) for a, b in zip(x, y)])
+		pwrmod = OpTwo(lambda x, y: [(a ** b) / (a % b) for a, b in zip(x, y)])
+		pwradd = OpTwo(lambda x, y: [(a ** b) / (a + b) for a, b in zip(x, y)])
+		pwrdiv = OpTwo(lambda x, y: [(a ** b) / (a / b) for a, b in zip(x, y)])
+		divmul = OpTwo(lambda x, y: [(a / b) / (a * b) for a, b in zip(x, y)])
+		divsub = OpTwo(lambda x, y: [(a / b) / (a - b) for a, b in zip(x, y)])
+		divmod = OpTwo(lambda x, y: [(a / b) / (a % b) for a, b in zip(x, y)])
+		divpwr = OpTwo(lambda x, y: [(a / b) / (a ** b) for a, b in zip(x, y)])
+		divadd = OpTwo(lambda x, y: [(a / b) / (a + b) for a, b in zip(x, y)])
 
 	class DInv:
-		disub = Infix(lambda x, y: [1 / ((1 / a) - (1 / b)) for a, b in zip(x, y)])
-		diadd = Infix(lambda x, y: [1 / ((1 / a) + (1 / b)) for a, b in zip(x, y)])
-		dimul = Infix(lambda x, y: [1 / ((1 / a) * (1 / b)) for a, b in zip(x, y)])
-		didiv = Infix(lambda x, y: [1 / ((1 / a) / (1 / b)) for a, b in zip(x, y)])
-		dimod = Infix(lambda x, y: [1 / ((1 / a) % (1 / b)) for a, b in zip(x, y)])
-		dipwr = Infix(lambda x, y: [1 / ((1 / a) ** (1 / b)) for a, b in zip(x, y)])
-		disubr = Infix(lambda x, y: [1 / ((1 / b) - (1 / a)) for a, b in zip(x, y)])
-		diaddr = Infix(lambda x, y: [1 / ((1 / b) + (1 / a)) for a, b in zip(x, y)])
-		dimulr = Infix(lambda x, y: [1 / ((1 / b) * (1 / a)) for a, b in zip(x, y)])
-		didivr = Infix(lambda x, y: [1 / ((1 / b) / (1 / a)) for a, b in zip(x, y)])
-		dimodr = Infix(lambda x, y: [1 / ((1 / b) % (1 / a)) for a, b in zip(x, y)])
-		dipwrr = Infix(lambda x, y: [1 / ((1 / b) ** (1 / a)) for a, b in zip(x, y)])
+		disub = OpTwo(lambda x, y: [1 / ((1 / a) - (1 / b)) for a, b in zip(x, y)])
+		diadd = OpTwo(lambda x, y: [1 / ((1 / a) + (1 / b)) for a, b in zip(x, y)])
+		dimul = OpTwo(lambda x, y: [1 / ((1 / a) * (1 / b)) for a, b in zip(x, y)])
+		didiv = OpTwo(lambda x, y: [1 / ((1 / a) / (1 / b)) for a, b in zip(x, y)])
+		dimod = OpTwo(lambda x, y: [1 / ((1 / a) % (1 / b)) for a, b in zip(x, y)])
+		dipwr = OpTwo(lambda x, y: [1 / ((1 / a) ** (1 / b)) for a, b in zip(x, y)])
+		disubr = OpTwo(lambda x, y: [1 / ((1 / b) - (1 / a)) for a, b in zip(x, y)])
+		diaddr = OpTwo(lambda x, y: [1 / ((1 / b) + (1 / a)) for a, b in zip(x, y)])
+		dimulr = OpTwo(lambda x, y: [1 / ((1 / b) * (1 / a)) for a, b in zip(x, y)])
+		didivr = OpTwo(lambda x, y: [1 / ((1 / b) / (1 / a)) for a, b in zip(x, y)])
+		dimodr = OpTwo(lambda x, y: [1 / ((1 / b) % (1 / a)) for a, b in zip(x, y)])
+		dipwrr = OpTwo(lambda x, y: [1 / ((1 / b) ** (1 / a)) for a, b in zip(x, y)])
 
 	class Bin:
-		and_ = Infix(lambda x, y: [a & b for a, b in zip(x, y)])
-		xor = Infix(lambda x, y: [a ^ b for a, b in zip(x, y)])
-		xnor = Infix(lambda x, y: [bit_not(a ^ b) for a, b in zip(x, y)])
-		xnor_uns = Infix(lambda x, y: [~(a ^ b) for a, b in zip(x, y)])
-		or_ = Infix(lambda x, y: [a | b for a, b in zip(x, y)])
-		ls = Infix(lambda x, y: [a << b for a, b in zip(x, y)])
-		rs = Infix(lambda x, y: [a >> b for a, b in zip(x, y)])
-		rls = Infix(lambda x, y: [b << a for a, b in zip(x, y)])
-		rrs = Infix(lambda x, y: [b >> a for a, b in zip(x, y)])
+		and_ = OpTwo(lambda x, y: [a & b for a, b in zip(x, y)])
+		xor = OpTwo(lambda x, y: [a ^ b for a, b in zip(x, y)])
+		xnor = OpTwo(lambda x, y: [bit_not(a ^ b) for a, b in zip(x, y)])
+		xnor_uns = OpTwo(lambda x, y: [~(a ^ b) for a, b in zip(x, y)])
+		or_ = OpTwo(lambda x, y: [a | b for a, b in zip(x, y)])
+		ls = OpTwo(lambda x, y: [a << b for a, b in zip(x, y)])
+		rs = OpTwo(lambda x, y: [a >> b for a, b in zip(x, y)])
+		rls = OpTwo(lambda x, y: [b << a for a, b in zip(x, y)])
+		rrs = OpTwo(lambda x, y: [b >> a for a, b in zip(x, y)])
 
 
-avg = Infix(lambda x, y: (x + y) / 2)
+avg = OpTwo(lambda x, y: (x + y) / 2)
 
 
 class B:
-	not_ = Infix(lambda x, y: [not n for n in x])  # second term is necessary but unused
+	not_ = Op(lambda x: [not n for n in x])  # Single input
 
 	class I:
-		equ = Infix(lambda x, y: [n == y for n in x])
-		nequ = Infix(lambda x, y: [n == y for n in x])
-		not_ = Infix(lambda x, y: [not n for n in x])  # second term is necessary but unused
-		and_ = Infix(lambda x, y: [n and y for n in x])
-		nand = Infix(lambda x, y: [not(n and y) for n in x])
-		or_ = Infix(lambda x, y: [n or y for n in x])
-		nor = Infix(lambda x, y: [not(n or y) for n in x])
-		xor = Infix(lambda x, y: [n ^ y for n in x])
-		xnor = Infix(lambda x, y: [not(n ^ y) for n in x])
+		equ = OpTwo(lambda x, y: [n == y for n in x])
+		nequ = OpTwo(lambda x, y: [n == y for n in x])
+		not_ = Op(lambda x: [not n for n in x])  # Single input
+		and_ = OpTwo(lambda x, y: [n and y for n in x])
+		nand = OpTwo(lambda x, y: [not(n and y) for n in x])
+		or_ = OpTwo(lambda x, y: [n or y for n in x])
+		nor = OpTwo(lambda x, y: [not(n or y) for n in x])
+		xor = OpTwo(lambda x, y: [n ^ y for n in x])
+		xnor = OpTwo(lambda x, y: [not(n ^ y) for n in x])
 
 	class Z:
-		equ = Infix(lambda x, y: [a == b for a, b in zip(x, y)])
-		nequ = Infix(lambda x, y: [not(a == b) for a, b in zip(x, y)])
-		not_ = Infix(lambda x, y: [not n for n in x])  # second term is necessary but unused
-		and_ = Infix(lambda x, y: [a and b for a, b in zip(x, y)])
-		nand = Infix(lambda x, y: [not(a and b) for a, b in zip(x, y)])
-		or_ = Infix(lambda x, y: [a or b for a, b in zip(x, y)])
-		nor = Infix(lambda x, y: [not(a or b) for a, b in zip(x, y)])
-		xor = Infix(lambda x, y: [a ^ b for a, b in zip(x, y)])
-		xnor = Infix(lambda x, y: [not(a ^ b) for a, b in zip(x, y)])
+		equ = OpTwo(lambda x, y: [a == b for a, b in zip(x, y)])
+		nequ = OpTwo(lambda x, y: [not(a == b) for a, b in zip(x, y)])
+		not_ = Op(lambda x: [not n for n in x])  # Single input
+		and_ = OpTwo(lambda x, y: [a and b for a, b in zip(x, y)])
+		nand = OpTwo(lambda x, y: [not(a and b) for a, b in zip(x, y)])
+		or_ = OpTwo(lambda x, y: [a or b for a, b in zip(x, y)])
+		nor = OpTwo(lambda x, y: [not(a or b) for a, b in zip(x, y)])
+		xor = OpTwo(lambda x, y: [a ^ b for a, b in zip(x, y)])
+		xnor = OpTwo(lambda x, y: [not(a ^ b) for a, b in zip(x, y)])
 
 
-def combine(new: dict, existing: dict) -> dict:
+def combine(existing: dict, new: dict) -> dict:
 	out = {}
-	for key in new.keys():
-		out[key] = new[key]
 	for key in existing.keys():
 		out[key] = existing[key]
+	for key in new.keys():
+		out[key] = new[key]
 	return out
+
+
+def combine_any(*items):
+	pass
 
 
 def dict_intersect(x, y, appendpair=("_l", "_r")):
@@ -321,25 +410,23 @@ def string_sub_m(x, y):
 
 
 class D:
-	append = Infix(lambda x, y: dict(**x, **y))
+	append = OpTwo(lambda x, y: {**x, **y})
 	combine = append
-	append_non_str = Infix(lambda x, y: combine(x, y))
-	combine_non_str = append_non_str
-	intersect = Infix(lambda x, y: dict_intersect(x, y))
+	intersect = OpTwo(lambda x, y: dict_intersect(x, y))
 	and_ = intersect
-	mutex = Infix(lambda x, y: dict_symdiff(x, y))
+	mutex = OpTwo(lambda x, y: dict_symdiff(x, y))
 	symdiff = mutex
 	xor = mutex
 
 
 class S:
-	subt_l = Infix(lambda x, y: string_sub_l(x, y))
-	subt_r = Infix(lambda x, y: string_sub_r(x, y))
-	rsubt_l = Infix(lambda x, y: string_sub_l(x, y))
-	rsubt_r = Infix(lambda x, y: string_sub_r(x, y))
-	sub = Infix(lambda x, y: x.replace(y, ""))
-	repl_t = Infix(lambda x, y: [x.replace(str(y[0]), str(y[1]))])
-	repl_d = Infix(lambda x, y: string_sub_m(x, y))
+	subt_l = OpTwo(lambda x, y: string_sub_l(x, y))
+	subt_r = OpTwo(lambda x, y: string_sub_r(x, y))
+	rsubt_l = OpTwo(lambda x, y: string_sub_l(x, y))
+	rsubt_r = OpTwo(lambda x, y: string_sub_r(x, y))
+	sub = OpTwo(lambda x, y: x.replace(y, ""))
+	repl_t = OpTwo(lambda x, y: [x.replace(str(y[0]), str(y[1]))])
+	repl_d = OpTwo(lambda x, y: string_sub_m(x, y))
 	repl = repl_t
 	repl_m = repl_d
 
