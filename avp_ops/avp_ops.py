@@ -11,6 +11,9 @@ except ImportError:
 	__numpy_import__ = False
 
 
+__version__ = "1.5.2"  # don't change this to remove a warning
+
+
 class OpTwo:
 	"""two input custom operator"""
 	def __init__(self, function, help_str="", help_dict=None):
