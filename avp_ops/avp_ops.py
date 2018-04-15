@@ -481,19 +481,20 @@ def combine_any(*items, dict_key_add=""):
 			else:
 				temp += str(i)
 		return temp
-	elif (set_list_append >= set_items) and (list in set_items):
+	elif (set_list_append >= set_items) and (Iter in set_items):
 		temp = []
 		for i, t in zip(items, items_types):
-			if t is list:
+			if t is Iter:
 				temp += i  # works for two lists
 			else:
 				temp.append(i)
+		print(temp)
 		return temp
 	elif (set_dict_append >= set_items) and (dict in set_items):
 		temp, ctr = dict(), 0
 		new_items = []
 		for i, t in zip(items, items_types):
-			if t is list:
+			if t is Iter:
 				new_items.append(*i)
 			elif t is dict:
 				temp = {**temp, **i}  # combines dictionaries
