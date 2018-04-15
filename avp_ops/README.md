@@ -3,7 +3,7 @@
 Credit to [Ferdinand Jamitzky](https://code.activestate.com/recipes/384122/) for the hack that makes this possible.
 
 ### Operators:
-Currently there are 189 operators. That is too many to list in great detail when I'd rather add more. Please read the code.
+Currently there are 194 operators. That is too many to list in great detail when I'd rather add more. Please read the code.
 
 If you want to see the function for one and can't use an IDE to go to the code definition, you can use `.help()` on the operator and it will return its function, and for some it will return more help (which i am also slowly working on)
 

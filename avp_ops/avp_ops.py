@@ -195,6 +195,7 @@ class I:
 	replm = OpTwo(lambda x, y: [y[n] if n in y else n for n in x], I_help_dict["replm"])
 	set = OpTwo(lambda x, y: [y] * len(x), I_help_dict["set"])
 	types = Op(lambda x: [type(n) for n in x])  # Single input
+	ca = OpTwo(lambda x, y: combine_any(x, y))
 
 	class Div:
 		Div_help_dict = {}
@@ -282,6 +283,7 @@ class Z:
 	avg = OpTwo(lambda x, y: [(a + b) / 2 for a, b in zip(x, y)])
 	intersect = OpTwo(lambda x, y: list(set(x).intersection(y)))
 	types = Op(lambda x: [type(n) for n in x])  # Single input
+	ca = OpTwo(lambda x, y: combine_any(x, y))
 
 	class Div:
 		addmul = OpTwo(lambda x, y: [(a + b) / (a * b) for a, b in zip(x, y)])
@@ -373,7 +375,8 @@ class B:
 class N:
 	types = Op(lambda x: [type(n) for n in x])  # Single input
 	fact = Op(lambda x: [math.factorial(n) for n in x])  # Single input
-	type_iter = Op(lambda x: [is_iter(n) for n in x])  # Single input
+	itype = Op(lambda x: [is_iter(n) for n in x])  # Single input
+	mca = Op(lambda x: combine_any(*x))
 
 	class Bin:
 		inv = Op(lambda x: [bit_not(n) for n in x])  # Single input
@@ -458,11 +461,11 @@ def is_iter(o):
 
 
 def combine_any(*items, dict_key_add=""):
-	items_types = items % I.types  # returns list of type of each element in input list
+	items_types = items % N.itype  # returns list of type of each element in input list
 	dict_key_add = dict_key_add.strip()
 	set_items = set(items_types)
-	set_list_append = {list, int, float, str, decimal.Decimal, fractions.Fraction, complex}
-	set_dict_append = {dict, list, int, float, str, decimal.Decimal, fractions.Fraction, complex}
+	set_list_append = {Iter, int, float, str, decimal.Decimal, fractions.Fraction, complex}
+	set_dict_append = {dict, Iter, int, float, str, decimal.Decimal, fractions.Fraction, complex}
 	set_str_append = {int, float, str, decimal.Decimal, fractions.Fraction, complex}
 	set_num_append = {int, float, decimal.Decimal, fractions.Fraction, complex}
 	if set_num_append >= set_items:
@@ -484,21 +487,21 @@ def combine_any(*items, dict_key_add=""):
 				temp.append(i)
 		return temp
 	elif (set_dict_append >= set_items) and (dict in set_items):
-		temp, ctr = {}, 0
+		temp, ctr = dict(), 0
 		new_items = []
 		for i, t in zip(items, items_types):
 			if t is list:
 				new_items.append(*i)
 			elif t is dict:
-				temp = {*temp, *t}  # combines dictionaries
+				temp = {**temp, **i}  # combines dictionaries
 			else:
 				new_items.append(i)
-		new_types = new_items % I.types  # returns list of type of each element in list
+		new_types = new_items % N.itype  # returns list of type of each element in list
 		for i, t in zip(new_items, new_types):
 			if t is dict:
-				temp = {*temp, *t}  # combines dictionaries
+				temp = {**temp, **i}  # combines dictionaries
 			else:
-				temp["avp_ca_" + str(ctr) + dict_key_add] = t  # makes new dictionary key/value pairs for items not in a dictionary
+				temp["avp_ca_" + str(ctr) + dict_key_add] = i  # makes new dictionary key/value pairs for items not in a dictionary
 			ctr += 1
 		return temp
 
@@ -543,6 +546,7 @@ class D:
 	intersect = OpTwo(lambda x, y: dict_intersect(x, y))
 	and_ = intersect
 	mutex = OpTwo(lambda x, y: dict_symdiff(x, y))
+	ca = OpTwo(lambda x, y: combine_any(x, y))
 	symdiff = mutex
 	xor = mutex
 
@@ -555,6 +559,7 @@ class S:
 	sub = OpTwo(lambda x, y: x.replace(y, ""))
 	repl_t = OpTwo(lambda x, y: [x.replace(str(y[0]), str(y[1]))])
 	repl_d = OpTwo(lambda x, y: string_sub_m(x, y))
+	ca = OpTwo(lambda x, y: combine_any(x, y))
 	repl = repl_t
 	repl_m = repl_d
 
