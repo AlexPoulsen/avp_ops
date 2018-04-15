@@ -1,6 +1,14 @@
 import time
 import math
 import inspect
+import fractions
+import decimal
+import array
+try:
+	import Numpy
+	__numpy_import__ = True
+except ImportError:
+	__numpy_import__ = False
 
 
 class OpTwo:
@@ -362,6 +370,16 @@ class B:
 		xnor = OpTwo(lambda x, y: [not(a ^ b) for a, b in zip(x, y)])
 
 
+class N:
+	types = Op(lambda x: [type(n) for n in x])  # Single input
+	fact = Op(lambda x: [math.factorial(n) for n in x])  # Single input
+	type_iter = Op(lambda x: [is_iter(n) for n in x])  # Single input
+
+	class Bin:
+		inv = Op(lambda x: [bit_not(n) for n in x])  # Single input
+		inv_uns = Op(lambda x: [~n for n in x])  # Single input
+
+
 def combine(existing: dict, new: dict) -> dict:
 	out = {}
 	for key in existing.keys():
@@ -371,8 +389,118 @@ def combine(existing: dict, new: dict) -> dict:
 	return out
 
 
-def combine_any(*items):
-	pass
+def rsum(n, *m):  # mmmm efficiency
+	print("no just use sum()")
+	try:
+		s = n + m[0]
+		return rsum(s, *m[1:])
+	except IndexError:
+		return n
+
+
+class Iter:
+	@staticmethod
+	def eq(other):
+		t = type(other)
+		if t == type:
+			t = other
+		if __numpy_import__:
+			if (t == Numpy.ndarray) or (t == list) or (t == tuple) or (t == range) or (t == array.array) or (t == memoryview):
+				return True
+			else:
+				return False
+		else:
+			if (t == list) or (t == tuple) or (t == range) or (t == array.array) or (t == memoryview):
+				return True
+			else:
+				return False
+
+	def __mod__(self, other):
+		return self.eq(other)
+
+	def __rmod__(self, other):
+		return self.eq(other)
+
+	def __matmul__(self, other):
+		return self.eq(other)
+
+	def __rmatmul__(self, other):
+		return self.eq(other)
+
+	def __or__(self, other):
+		return self.eq(other)
+
+	def __ror__(self, other):
+		return self.eq(other)
+
+	def __and__(self, other):
+		return self.eq(other)
+
+	def __rand__(self, other):
+		return self.eq(other)
+
+	def __eq__(self, other):
+		return self.eq(other)
+
+	@staticmethod
+	def type(o):
+		return o if o == type else type(o)
+
+	def __call__(self, o):
+		return self.type(o)
+
+
+def is_iter(o):
+	if o @ Iter():
+		return type(Iter())
+	else:
+		return Iter().type(o)
+
+
+def combine_any(*items, dict_key_add=""):
+	items_types = items % I.types  # returns list of type of each element in input list
+	dict_key_add = dict_key_add.strip()
+	set_items = set(items_types)
+	set_list_append = {list, int, float, str, decimal.Decimal, fractions.Fraction, complex}
+	set_dict_append = {dict, list, int, float, str, decimal.Decimal, fractions.Fraction, complex}
+	set_str_append = {int, float, str, decimal.Decimal, fractions.Fraction, complex}
+	set_num_append = {int, float, decimal.Decimal, fractions.Fraction, complex}
+	if set_num_append >= set_items:
+		return sum(items)
+	elif set_str_append >= set_items:
+		temp = ""
+		for i, t in zip(items, items_types):
+			if t is str:
+				temp += i  # works for two strings
+			else:
+				temp += str(i)
+		return temp
+	elif (set_list_append >= set_items) and (list in set_items):
+		temp = []
+		for i, t in zip(items, items_types):
+			if t is list:
+				temp += i  # works for two lists
+			else:
+				temp.append(i)
+		return temp
+	elif (set_dict_append >= set_items) and (dict in set_items):
+		temp, ctr = {}, 0
+		new_items = []
+		for i, t in zip(items, items_types):
+			if t is list:
+				new_items.append(*i)
+			elif t is dict:
+				temp = {*temp, *t}  # combines dictionaries
+			else:
+				new_items.append(i)
+		new_types = new_items % I.types  # returns list of type of each element in list
+		for i, t in zip(new_items, new_types):
+			if t is dict:
+				temp = {*temp, *t}  # combines dictionaries
+			else:
+				temp["avp_ca_" + str(ctr) + dict_key_add] = t  # makes new dictionary key/value pairs for items not in a dictionary
+			ctr += 1
+		return temp
 
 
 def dict_intersect(x, y, appendpair=("_l", "_r")):
