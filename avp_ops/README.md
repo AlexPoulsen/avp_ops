@@ -11,6 +11,8 @@ If you want to see the function for one and can't use an IDE to go to the code d
 
 Operators defined with OpTwo take in two inputs `input_one % operator % input_two` and can use `<<`, `>>`, `|`, `%`, and `@`.
 
+All operators can take in inputs as a function. Simply call `Z.pwr([1, 2, 3], [4, 5, 6])` or `N.types(["string", 1, 2, [54, 32, 10]])` to call it just as if you used it as an operator.
+
 #### Example:
 
 ```
