@@ -193,11 +193,9 @@ class I:
 	hypot = OpTwo(lambda x, y: [math.hypot(n, y) for n in x], I_help_dict["hypot"])
 	rhypot = OpTwo(lambda x, y: [math.hypot(y, n) for n in x], I_help_dict["rhypot"])
 	avg = OpTwo(lambda x, y: [(n + y) / 2 for n in x], I_help_dict["avg"])
-	fact = Op(lambda x: [math.factorial(n) for n in x], I_help_dict["fact"])  # Single input
 	repl = OpTwo(lambda x, y: [y[1] if n == y[0] else n for n in x], I_help_dict["repl"])
 	replm = OpTwo(lambda x, y: [y[n] if n in y else n for n in x], I_help_dict["replm"])
 	set = OpTwo(lambda x, y: [y] * len(x), I_help_dict["set"])
-	types = Op(lambda x: [type(n) for n in x])  # Single input
 	ca = OpTwo(lambda x, y: combine_any(x, y))
 
 	class Div:
@@ -285,7 +283,6 @@ class Z:
 	rhypot = OpTwo(lambda x, y: [math.hypot(b, a) for a, b in zip(x, y)])
 	avg = OpTwo(lambda x, y: [(a + b) / 2 for a, b in zip(x, y)])
 	intersect = OpTwo(lambda x, y: list(set(x).intersection(y)))
-	types = Op(lambda x: [type(n) for n in x])  # Single input
 	ca = OpTwo(lambda x, y: combine_any(x, y))
 
 	class Div:
@@ -344,9 +341,8 @@ class Z:
 		rs = OpTwo(lambda x, y: [a >> b for a, b in zip(x, y)])
 		rls = OpTwo(lambda x, y: [b << a for a, b in zip(x, y)])
 		rrs = OpTwo(lambda x, y: [b >> a for a, b in zip(x, y)])
-
-
-avg = OpTwo(lambda x, y: (x + y) / 2)
+		inv = Op(lambda x: [bit_not(n) for n in x])  # Single input
+		inv_uns = Op(lambda x: [~n for n in x])  # Single input
 
 
 class B:
@@ -379,7 +375,10 @@ class N:
 	types = Op(lambda x: [type(n) for n in x])  # Single input
 	fact = Op(lambda x: [math.factorial(n) for n in x])  # Single input
 	itype = Op(lambda x: [is_iter(n) for n in x])  # Single input
-	mca = Op(lambda x: combine_any(*x))
+	mca = Op(lambda x: combine_any(*x))  # 'Single' input of a list containing all the items to combine
+	avg = OpTwo(lambda x, y: (x + y) / 2)
+	mlen = Op(lambda x: [safe_len(n) for n in x])
+	mca_i = Op(lambda x: combine_iters(*x))  # 'Single' input of a list containing all the items to combine, will return a generator, even if input does not contain a range or other generator. mca will call combine_iters() if an input is a range
 
 	class Bin:
 		inv = Op(lambda x: [bit_not(n) for n in x])  # Single input
@@ -393,15 +392,6 @@ def combine(existing: dict, new: dict) -> dict:
 	for key in new.keys():
 		out[key] = new[key]
 	return out
-
-
-def rsum(n, *m):  # mmmm efficiency
-	print("no just use sum()")
-	try:
-		s = n + m[0]
-		return rsum(s, *m[1:])
-	except IndexError:
-		return n
 
 
 class Iter:
@@ -456,11 +446,38 @@ class Iter:
 		return self.type(o)
 
 
+def safe_len(n):
+	try:
+		return len(n)
+	except TypeError:
+		return 1
+
+
 def is_iter(o):
 	if o @ Iter():
 		return type(Iter())
 	else:
 		return Iter().type(o)
+
+
+def combine_iters(*items) -> range:
+	lens = items % N.mlen
+	types = items % N.types
+	total_len = sum(lens)
+	pos = 0
+	item = 0
+	print(lens, types, total_len)
+	for n in range(total_len):
+		print(pos, item)
+		if (types[item] != int) and (types[item] != float) and (types[item] != fractions.Fraction) and (types[item] != decimal.Decimal) and (types[item] != complex):
+			yield items[item][pos]
+		else:
+			yield items[item]
+		if (pos + 1) >= lens[item]:
+			item += 1
+			pos = 0
+		else:
+			pos += 1
 
 
 def combine_any(*items, dict_key_add=""):
@@ -471,43 +488,46 @@ def combine_any(*items, dict_key_add=""):
 	set_dict_append = {dict, Iter, int, float, str, decimal.Decimal, fractions.Fraction, complex}
 	set_str_append = {int, float, str, decimal.Decimal, fractions.Fraction, complex}
 	set_num_append = {int, float, decimal.Decimal, fractions.Fraction, complex}
-	if set_num_append >= set_items:
-		return sum(items)
-	elif set_str_append >= set_items:
-		temp = ""
-		for i, t in zip(items, items_types):
-			if t is str:
-				temp += i  # works for two strings
-			else:
-				temp += str(i)
-		return temp
-	elif (set_list_append >= set_items) and (Iter in set_items):
-		temp = []
-		for i, t in zip(items, items_types):
-			if t is Iter:
-				temp += i  # works for two lists
-			else:
-				temp.append(i)
-		print(temp)
-		return temp
-	elif (set_dict_append >= set_items) and (dict in set_items):
-		temp, ctr = dict(), 0
-		new_items = []
-		for i, t in zip(items, items_types):
-			if t is Iter:
-				new_items.append(*i)
-			elif t is dict:
-				temp = {**temp, **i}  # combines dictionaries
-			else:
-				new_items.append(i)
-		new_types = new_items % N.itype  # returns list of type of each element in list
-		for i, t in zip(new_items, new_types):
-			if t is dict:
-				temp = {**temp, **i}  # combines dictionaries
-			else:
-				temp["avp_ca_" + str(ctr) + dict_key_add] = i  # makes new dictionary key/value pairs for items not in a dictionary
-			ctr += 1
-		return temp
+	if type(range) in items_types:
+		return combine_iters(*items)
+	else:
+		if set_num_append >= set_items:
+			return sum(items)
+		elif set_str_append >= set_items:
+			temp = ""
+			for i, t in zip(items, items_types):
+				if t is str:
+					temp += i  # works for two strings
+				else:
+					temp += str(i)
+			return temp
+		elif (set_list_append >= set_items) and (Iter in set_items):
+			temp = []
+			for i, t in zip(items, items_types):
+				if t is Iter:
+					temp += i  # works for two lists
+				else:
+					temp.append(i)
+			print(temp)
+			return temp
+		elif (set_dict_append >= set_items) and (dict in set_items):
+			temp, ctr = dict(), 0
+			new_items = []
+			for i, t in zip(items, items_types):
+				if t is Iter:
+					new_items.append(*i)
+				elif t is dict:
+					temp = {**temp, **i}  # combines dictionaries
+				else:
+					new_items.append(i)
+			new_types = new_items % N.itype  # returns list of type of each element in list
+			for i, t in zip(new_items, new_types):
+				if t is dict:
+					temp = {**temp, **i}  # combines dictionaries
+				else:
+					temp["avp_ca_" + str(ctr) + dict_key_add] = i  # makes new dictionary key/value pairs for items not in a dictionary
+				ctr += 1
+			return temp
 
 
 def dict_intersect(x, y, appendpair=("_l", "_r")):
