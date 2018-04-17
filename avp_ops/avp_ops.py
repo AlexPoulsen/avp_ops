@@ -14,13 +14,44 @@ except ImportError:
 __version__ = "1.5.2"  # don't change this to remove a warning
 
 
-class OpTwo:
-	"""two input custom operator"""
+def _mkdocstr(function, help_str, help_dict=None):
+	"""
+	_mkdocstr(callable, dict)
+	_mkdocstr(callable, str, dict)
+	"""
+	if not isinstance(help_str, str):
+		help_str, help_dict = "", help_str
+
+	if help_dict is None:
+		if help_str == "":
+			data = inspect.getsource(function).replace("\t", "").replace("\n", "")
+		else:
+			data = inspect.getsource(function).replace("\t", "").replace("\n", "") + " <?> " + help_str
+	else:
+		data = help_dict["name"] + " - "
+		try:
+			data += help_dict["notes"] + " - "
+		except KeyError:
+			pass
+		data += help_dict["type"] + " - "
+		data += inspect.getsource(function).replace("\t", "").replace("\n", "")
+	return data
+
+
+class BaseOp:
+	def __new__(cls, function, help_str="", help_dict=None):
+		newcls = type(cls.__name__, (cls,), {'__doc__': _mkdocstr(function, help_str, help_dict)})
+		# This bypasses the MRO, but encodes the assumption that we're calling object
+		return object.__new__(newcls)
+
 	def __init__(self, function, help_str="", help_dict=None):
 		self.function = function
 		self.help_str = help_str
 		self.help_dict = help_dict
 
+
+class OpTwo(BaseOp):
+	"""two input custom operator"""
 	def __ror__(self, other):
 		return OpTwo(lambda x, self=self, other=other: self.function(other, x))
 
@@ -55,30 +86,13 @@ class OpTwo:
 		return self.function(value1, value2)
 
 	def help(self):
-		if self.help_dict is not None:
-			if self.help_str == "":
-				data = inspect.getsource(self.function).replace("\t", "").replace("\n", "")
-			else:
-				data = inspect.getsource(self.function).replace("\t", "").replace("\n", "") + " <?> " + self.help_str
-		else:
-			data = self.help_dict["name"] + " - "
-			try:
-				data += self.help_dict["notes"] + " - "
-			except KeyError:
-				pass
-			data += self.help_dict["type"] + " - "
-			data += inspect.getsource(self.function).replace("\t", "").replace("\n", "")
+		data = _mkdocstr(self.function, self.help_str, self.help_dict)
 		print(data)
 		return data
 
 
-class Op:
+class Op(BaseOp):
 	"""one input custom operator"""
-	def __init__(self, function, help_str="", help_dict=None):
-		self.function = function
-		self.help_str = help_str
-		self.help_dict = help_dict
-
 	def __ror__(self, other):
 		return self.function(other)
 
@@ -119,19 +133,7 @@ class Op:
 		return self.function(value1)
 
 	def help(self):
-		if self.help_dict is not None:
-			if self.help_str == "":
-				data = inspect.getsource(self.function).replace("\t", "").replace("\n", "")
-			else:
-				data = inspect.getsource(self.function).replace("\t", "").replace("\n", "") + " <?> " + self.help_str
-		else:
-			data = self.help_dict["name"] + " - "
-			try:
-				data += self.help_dict["notes"] + " - "
-			except KeyError:
-				pass
-			data += self.help_dict["type"] + " - "
-			data += inspect.getsource(self.function).replace("\t", "").replace("\n", "")
+		data = _mkdocstr(self.function, self.help_str, self.help_dict)
 		print(data)
 		return data
 
