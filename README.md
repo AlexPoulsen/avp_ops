@@ -60,10 +60,35 @@ Operators defined with Op take in one input `input % operator` or `operator % in
 ##### The curry and eval set of functions are powerful, but can easily lead to confusing code.
 
 ```
-N.curry_l     N.curry_r     N.eval_l     N.eval_r
-Z.curry_l     Z.curry_r     Z.eval_l     Z.eval_r
-I.curry_l_sf  I.curry_r_sf  I.eval_l_sf  I.eval_r_sf
-I.curry_l_mf  I.curry_r_mf  I.eval_l_mf  I.eval_r_mf
+- Curries one function and one input
+N.curry_l     N.curry_r
+
+- Evaluates one function and one input
+N.eval_l     N.eval_r
+
+- Curries a list of functions and a list of inputs
+Z.curry_l     Z.curry_r
+
+- Evaulates a list of functions and a list of inputs
+Z.eval_l     Z.eval_r
+
+- Curries a function and a list of inputs
+I.curry_l_sf  I.curry_r_sf
+
+- Evaulates a function and a list of inputs
+I.eval_l_sf  I.eval_r_sf - single function
+
+- Curries a list of functions and an input
+I.curry_l_mf  I.curry_r_mf
+
+- Evaulates a list of functions and an input
+I.eval_l_mf  I.eval_r_mf - multi function
+
+- Takes no input, evaluates fully curried function
+N.eval_ni
+
+- Takes no input, evaluates fully curried functions
+Z.eval_ni I.eval_ni (same)
 ```
 
 ##### If you email me i may respond. If you have a bug report and want to email me, make a gihub issue first. Don't sign me up for spam or email me in a spammy way.

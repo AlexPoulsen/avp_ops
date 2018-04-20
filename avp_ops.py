@@ -11,7 +11,7 @@ except ImportError:
 	__numpy_import__ = False
 
 
-__version__ = "1.6.3"  # don't change this to remove a warning
+__version__ = "1.6.4"  # don't change this to remove a warning
 
 
 def _mkdocstr(function, help_str, help_dict=None):
@@ -441,6 +441,7 @@ class I:
 	eval_l_sf = OpTwo(lambda x, y: [x(n) for n in y])  # takes function on left and curries is with the inputs on the right, returns list of curried functions
 	eval_r_mf = OpTwo(lambda x, y: [n(x) for n in y])  # takes function on right and curries is with the inputs on the left, returns list of curried functions
 	eval_l_mf = OpTwo(lambda x, y: [n(y) for n in x])  # takes function on left and curries is with the inputs on the right, returns list of curried functions
+	eval_ni = Op(lambda x: [n() for n in x])
 
 	class Div:
 		"""A series of operators involving two parenthesis groups divided, using a variety of operators on each side"""
@@ -590,6 +591,7 @@ class Z:
 	curry = curry_l
 	eval_l = OpTwo(lambda x, y: [a(b) for a, b in zip(x, y)])
 	eval_r = OpTwo(lambda x, y: [b(a) for a, b in zip(x, y)])
+	eval_ni = Op(lambda x: [n() for n in x])
 
 	class Div:
 		"""A series of operators involving two parenthesis groups divided, using a variety of operators on each side"""
@@ -753,6 +755,7 @@ class N:
 	curry = curry_l
 	eval_l = OpTwo(lambda x, y: x(y))
 	eval_r = OpTwo(lambda x, y: y(x))
+	eval_ni = Op(lambda x: x())
 
 	class Bin:
 		"""Binary related"""
