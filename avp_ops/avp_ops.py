@@ -11,7 +11,7 @@ except ImportError:
 	__numpy_import__ = False
 
 
-__version__ = "1.5.2"  # don't change this to remove a warning
+__version__ = "1.6.3"  # don't change this to remove a warning
 
 
 def _mkdocstr(function, help_str, help_dict=None):
@@ -138,19 +138,6 @@ class Op(BaseOp):
 		return data
 
 
-def bit_not(n):
-	return (1 << n.bit_length()) - 1 - n
-
-
-def combine(existing: dict, new: dict) -> dict:
-	out = {}
-	for key in existing.keys():
-		out[key] = existing[key]
-	for key in new.keys():
-		out[key] = new[key]
-	return out
-
-
 class Iter:
 	@staticmethod
 	def eq(other):
@@ -203,11 +190,66 @@ class Iter:
 		return self.type(o)
 
 
-def safe_len(n):
+class TestCounter:
+	def __init__(self, *args):
+		self.enable = True
+		self.count = {}
+		if args:
+			for n in args:
+				self.count[n] = 0
+
+
+def timeme(method, total_var=None):
+	def wrapper(*args, **kw):
+		if not total_var.enable:
+			return method(*args, **kw)
+		start_time = int(round(time.time() * 1000))
+		result = method(*args, **kw)
+		end_time = int(round(time.time() * 1000))
+		# print(end_time - start_time, 'ms')
+		total_var.timer += (end_time - start_time)
+		return result
+	return wrapper
+
+
+def log_fn(var):
+	def log_decorator(func):
+		def func_wrapper(*args, **kw):
+			if not var.enable:
+				return func(*args, **kw)
+			print(var.count)
+			var.count[func.__name__] += 1
+			print(var.count)
+			return func(*args, **kw)
+		return func_wrapper
+	return log_decorator
+
+
+def bit_not(n):
+	return (1 << n.bit_length()) - 1 - n
+
+
+def safe_len(n, float_digits_split=False):
 	try:
 		return len(n)
 	except TypeError:
-		return 1
+		if float_digits_split:
+			if type(n) == int:
+				return len(str(n))
+			elif (type(n) == decimal.Decimal) or (type(n) == float):
+				try:
+					s = str(n).split(".")
+					return len(s[0]), len(s[1])
+				except IndexError:
+					s = str(n).split(".")
+					return len(s[0]), 0
+			elif type(n) == fractions.Fraction:
+				s = str(n).split("/")
+				return len(s[0]), len(s[1])
+			else:
+				return 1
+		else:
+			return 1
 
 
 def is_iter(o):
@@ -215,6 +257,15 @@ def is_iter(o):
 		return type(Iter())
 	else:
 		return Iter().type(o)
+
+
+def combine(existing: dict, new: dict) -> dict:
+	out = {}
+	for key in existing.keys():
+		out[key] = existing[key]
+	for key in new.keys():
+		out[key] = new[key]
+	return out
 
 
 def combine_iters(*items) -> range:
@@ -321,44 +372,15 @@ def string_sub_m(x, y):
 	return x
 
 
-def timeme(method, total_var=None):
-	def wrapper(*args, **kw):
-		if not total_var.enable:
-			return method(*args, **kw)
-		start_time = int(round(time.time() * 1000))
-		result = method(*args, **kw)
-		end_time = int(round(time.time() * 1000))
-		# print(end_time - start_time, 'ms')
-		total_var.timer += (end_time - start_time)
-		return result
-	return wrapper
-
-
-def log_fn(var):
-	def log_decorator(func):
-		def func_wrapper(*args, **kw):
-			if not var.enable:
-				return func(*args, **kw)
-			print(var.count)
-			var.count[func.__name__] += 1
-			print(var.count)
-			return func(*args, **kw)
-		return func_wrapper
-	return log_decorator
-
-
-class TestCounter:
-	def __init__(self, *args):
-		self.enable = True
-		self.count = {}
-		if args:
-			for n in args:
-				self.count[n] = 0
+def curry(f, x):
+	def curried_function(*args, **kw):
+		return f(*((x, )+args), **kw)
+	return curried_function
 
 
 class I:
 	"""Iterator and Non-Iterator operators/methods"""
-	I_help_dict = {
+	I_help_dictionary = {
 		"div": {"name": "div: division", "type": "iter to non-iter"},
 		"rdiv": {"name": "rdiv: division, reverse", "type": "iter to non-iter"},
 		"mul": {"name": "mul: multiplication", "type": "iter to non-iter"},
@@ -385,31 +407,40 @@ class I:
 		"replm": {"name": "replm: multi replace", "type": "iter to non-iter", "notes": "use a dictionary with a key for the item to be found to replace, and it's key'd item is swapped in"},
 		"set": {"name": "set: replace entire array", "type": "iter to non-iter"}
 	}
-	div = OpTwo(lambda x, y: [n / y for n in x], I_help_dict["div"])
-	rdiv = OpTwo(lambda x, y: [y / n for n in x], I_help_dict["rdiv"])
-	mul = OpTwo(lambda x, y: [n * y for n in x], I_help_dict["mul"])
-	add = OpTwo(lambda x, y: [n + y for n in x], I_help_dict["add"])
-	sub = OpTwo(lambda x, y: [n - y for n in x], I_help_dict["sub"])
-	rsub = OpTwo(lambda x, y: [y - n for n in x], I_help_dict["rsub"])
-	pwr = OpTwo(lambda x, y: [n ** y for n in x], I_help_dict["pwr"])
-	rpwr = OpTwo(lambda x, y: [y ** n for n in x], I_help_dict["rpwr"])
-	mod = OpTwo(lambda x, y: [n % y for n in x], I_help_dict["mod"])
-	rmod = OpTwo(lambda x, y: [y % n for n in x], I_help_dict["rmod"])
-	fmod = OpTwo(lambda x, y: [math.fmod(n, y) for n in x], I_help_dict["fmod"])
-	rfmod = OpTwo(lambda x, y: [math.fmod(y, n) for n in x], I_help_dict["rfmod"])
-	sign = OpTwo(lambda x, y: [math.copysign(n, y) for n in x], I_help_dict["sign"])
-	gcd = OpTwo(lambda x, y: [math.gcd(n, y) for n in x], I_help_dict["gcd"])
-	log = OpTwo(lambda x, y: [math.log(n, y) for n in x], I_help_dict["log"])
-	rlog = OpTwo(lambda x, y: [math.log(y, n) for n in x], I_help_dict["rlog"])
-	atan2 = OpTwo(lambda x, y: [math.atan2(n, y) for n in x], I_help_dict["atan2"])
-	ratan2 = OpTwo(lambda x, y: [math.atan2(y, n) for n in x], I_help_dict["ratan2"])
-	hypot = OpTwo(lambda x, y: [math.hypot(n, y) for n in x], I_help_dict["hypot"])
-	rhypot = OpTwo(lambda x, y: [math.hypot(y, n) for n in x], I_help_dict["rhypot"])
-	avg = OpTwo(lambda x, y: [(n + y) / 2 for n in x], I_help_dict["avg"])
-	repl = OpTwo(lambda x, y: [y[1] if n == y[0] else n for n in x], I_help_dict["repl"])
-	replm = OpTwo(lambda x, y: [y[n] if n in y else n for n in x], I_help_dict["replm"])
-	set = OpTwo(lambda x, y: [y] * len(x), I_help_dict["set"])
+	div = OpTwo(lambda x, y: [n / y for n in x], I_help_dictionary["div"])
+	rdiv = OpTwo(lambda x, y: [y / n for n in x], I_help_dictionary["rdiv"])
+	mul = OpTwo(lambda x, y: [n * y for n in x], I_help_dictionary["mul"])
+	add = OpTwo(lambda x, y: [n + y for n in x], I_help_dictionary["add"])
+	sub = OpTwo(lambda x, y: [n - y for n in x], I_help_dictionary["sub"])
+	rsub = OpTwo(lambda x, y: [y - n for n in x], I_help_dictionary["rsub"])
+	pwr = OpTwo(lambda x, y: [n ** y for n in x], I_help_dictionary["pwr"])
+	rpwr = OpTwo(lambda x, y: [y ** n for n in x], I_help_dictionary["rpwr"])
+	mod = OpTwo(lambda x, y: [n % y for n in x], I_help_dictionary["mod"])
+	rmod = OpTwo(lambda x, y: [y % n for n in x], I_help_dictionary["rmod"])
+	fmod = OpTwo(lambda x, y: [math.fmod(n, y) for n in x], I_help_dictionary["fmod"])
+	rfmod = OpTwo(lambda x, y: [math.fmod(y, n) for n in x], I_help_dictionary["rfmod"])
+	sign = OpTwo(lambda x, y: [math.copysign(n, y) for n in x], I_help_dictionary["sign"])
+	gcd = OpTwo(lambda x, y: [math.gcd(n, y) for n in x], I_help_dictionary["gcd"])
+	log = OpTwo(lambda x, y: [math.log(n, y) for n in x], I_help_dictionary["log"])
+	rlog = OpTwo(lambda x, y: [math.log(y, n) for n in x], I_help_dictionary["rlog"])
+	atan2 = OpTwo(lambda x, y: [math.atan2(n, y) for n in x], I_help_dictionary["atan2"])
+	ratan2 = OpTwo(lambda x, y: [math.atan2(y, n) for n in x], I_help_dictionary["ratan2"])
+	hypot = OpTwo(lambda x, y: [math.hypot(n, y) for n in x], I_help_dictionary["hypot"])
+	rhypot = OpTwo(lambda x, y: [math.hypot(y, n) for n in x], I_help_dictionary["rhypot"])
+	avg = OpTwo(lambda x, y: [(n + y) / 2 for n in x], I_help_dictionary["avg"])
+	repl = OpTwo(lambda x, y: [y[1] if n == y[0] else n for n in x], I_help_dictionary["repl"])
+	replm = OpTwo(lambda x, y: [y[n] if n in y else n for n in x], I_help_dictionary["replm"])
+	set = OpTwo(lambda x, y: [y] * len(x), I_help_dictionary["set"])
 	ca = OpTwo(lambda x, y: combine_any(x, y))
+	isa = OpTwo(lambda x, y: [y.__class__ == n.__class__ for n in x])  # ADD MORE HELP INFO
+	curry_r_sf = OpTwo(lambda x, y: [curry(y, n) for n in x])  # takes function on right and curries is with the inputs on the left, returns list of curried functions
+	curry_l_sf = OpTwo(lambda x, y: [curry(x, n) for n in y])  # takes function on left and curries is with the inputs on the right, returns list of curried functions
+	curry_r_mf = OpTwo(lambda x, y: [curry(n, x) for n in y])  # takes function on right and curries is with the inputs on the left, returns list of curried functions
+	curry_l_mf = OpTwo(lambda x, y: [curry(n, y) for n in x])  # takes function on left and curries is with the inputs on the right, returns list of curried functions
+	eval_r_sf = OpTwo(lambda x, y: [y(n) for n in x])  # takes function on right and curries is with the inputs on the left, returns list of curried functions
+	eval_l_sf = OpTwo(lambda x, y: [x(n) for n in y])  # takes function on left and curries is with the inputs on the right, returns list of curried functions
+	eval_r_mf = OpTwo(lambda x, y: [n(x) for n in y])  # takes function on right and curries is with the inputs on the left, returns list of curried functions
+	eval_l_mf = OpTwo(lambda x, y: [n(y) for n in x])  # takes function on left and curries is with the inputs on the right, returns list of curried functions
 
 	class Div:
 		"""A series of operators involving two parenthesis groups divided, using a variety of operators on each side"""
@@ -553,6 +584,12 @@ class Z:
 	avg = OpTwo(lambda x, y: [(a + b) / 2 for a, b in zip(x, y)])
 	intersect = OpTwo(lambda x, y: list(set(x).intersection(y)))
 	ca = OpTwo(lambda x, y: combine_any(x, y))
+	isa = OpTwo(lambda x, y: [a.__class__ == b.__class__ for a, b in zip(x, y)])  # ADD MORE HELP INFO
+	curry_r = OpTwo(lambda x, y: [curry(b, a) for a, b in zip(x, y)])  # takes function on right and curries is with the inputs on the left, returns list of curried functions
+	curry_l = OpTwo(lambda x, y: [curry(a, b) for a, b in zip(x, y)])  # takes function on ;eft and curries is with the inputs on the right, returns list of curried functions
+	curry = curry_l
+	eval_l = OpTwo(lambda x, y: [a(b) for a, b in zip(x, y)])
+	eval_r = OpTwo(lambda x, y: [b(a) for a, b in zip(x, y)])
 
 	class Div:
 		"""A series of operators involving two parenthesis groups divided, using a variety of operators on each side"""
@@ -710,6 +747,12 @@ class N:
 	avg = OpTwo(lambda x, y: (x + y) / 2)
 	mlen = Op(lambda x: [safe_len(n) for n in x])
 	mca_i = Op(lambda x: combine_iters(*x))  # 'Single' input of a list containing all the items to combine, will return a generator, even if input does not contain a range or other generator. mca will call combine_iters() if an input is a range
+	isa = Op(lambda x, y: x.__class__ == y.__class__)  # ADD MORE HELP INFO
+	curry_r = OpTwo(lambda x, y: curry(y, x))  # takes function on right and curries is with the inputs on the left, returns list of curried functions
+	curry_l = OpTwo(lambda x, y: curry(x, y))  # takes function on ;eft and curries is with the inputs on the right, returns list of curried functions
+	curry = curry_l
+	eval_l = OpTwo(lambda x, y: x(y))
+	eval_r = OpTwo(lambda x, y: y(x))
 
 	class Bin:
 		"""Binary related"""
